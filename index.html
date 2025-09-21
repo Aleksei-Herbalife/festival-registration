@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+function filterConsultants() {
+            updateConsultantsList();
+        }<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -282,6 +284,14 @@
         }
         
         /* Информационные блоки */
+        .info-card {
+            background: #e3f7ff;
+            border: 1px solid #4facfe;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
         .stats-card {
             background: #fff3cd;
             border: 1px solid #ffc107;
@@ -653,6 +663,145 @@
                     <h2 style="color: #dc3545; margin-bottom: 15px;">Ошибка подключения</h2>
                     <p style="color: #666; margin-bottom: 20px;">Не удалось загрузить данные участников</p>
                     <div class="status error" id="errorMessage"></div>
+                    <button class="btn btn-primary" onclick="location.reload()">
+                        🔄 Попробовать снова
+                    </button>
+                </div>
+            </div>
+
+            <!-- Регистрация закрыта -->
+            <div class="step" id="registrationClosedStep">
+                <div class="registration-closed">
+                    <div style="font-size: 3rem; margin-bottom: 15px;">🔒</div>
+                    <h2 style="margin-bottom: 15px;">Регистрация закрыта</h2>
+                    <p>Организаторы временно приостановили регистрацию участников.</p>
+                    <p style="margin-top: 10px;">Попробуйте позже или обратитесь к администратору.</p>
+                    <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 20px;">
+                        🔄 Обновить страницу
+                    </button>
+                </div>
+            </div>
+
+            <!-- Шаг 1: Выбор консультанта -->
+            <div class="step" id="step1">
+                <div class="progress">
+                    <div class="progress-bar" style="width: 25%"></div>
+                </div>
+                
+                <h2 style="margin-bottom: 10px;">👤 Ваш консультант</h2>
+                <p style="color: #666; margin-bottom: 20px;">Выберите консультанта, который пригласил вас на фестиваль</p>
+                
+                <div class="form-group">
+                    <input type="text" class="search-box" id="consultantSearch" placeholder="🔍 Поиск консультанта...">
+                    <!-- Мобильная версия -->
+                    <div id="consultantMobileList" style="display: block;">
+                        <div id="consultantCards" class="consultants-grid"></div>
+                    </div>
+                    <!-- ПК версия (скрыта на мобильных) -->
+                    <select id="consultantSelect" size="5" style="height: 160px; display: none;">
+                        <option value="">Выберите консультанта...</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary" onclick="nextStep(2)" disabled id="nextBtn1">
+                    Продолжить <span class="emoji">➡️</span>
+                </button>
+            </div>
+
+            <!-- Шаг 2: Выбор участника -->
+            <div class="step" id="step2">
+                <div class="progress">
+                    <div class="progress-bar" style="width: 50%"></div>
+                </div>
+                
+                <button class="back-btn" onclick="prevStep(1)">⬅️ Назад к консультантам</button>
+                
+                <h2 style="margin-bottom: 10px;">🎯 Найдите себя</h2>
+                <p style="color: #666; margin-bottom: 10px;">Консультант: <strong id="selectedConsultantName"></strong></p>
+                
+                <div class="stats-card" id="registrationStats">
+                    👥 Зарегистрировано: <span id="regCount">0</span> из <span id="totalCount">0</span>
+                </div>
+                
+                <div class="form-group">
+                    <input type="text" class="search-box" id="participantSearch" placeholder="🔍 Введите ваше имя...">
+                    <div id="participantsList" style="max-height: 260px; overflow-y: auto;"></div>
+                </div>
+                
+                <button class="btn btn-primary" onclick="nextStep(3)" disabled id="nextBtn2">
+                    Подтвердить выбор <span class="emoji">✅</span>
+                </button>
+            </div>
+
+            <!-- Шаг 3: Подтверждение -->
+            <div class="step" id="step3">
+                <div class="progress">
+                    <div class="progress-bar" style="width: 75%"></div>
+                </div>
+                
+                <button class="back-btn" onclick="prevStep(2)">⬅️ Назад к списку</button>
+                
+                <h2 style="margin-bottom: 15px;">✅ Подтверждение регистрации</h2>
+                <p style="color: #666; margin-bottom: 20px;">Проверьте правильность данных перед регистрацией</p>
+                
+                <div class="participant-card" style="border-color: #28a745; background: #d4edda;" id="confirmationCard">
+                    <div class="participant-name" id="confirmName">Имя участника</div>
+                    <div class="participant-info">
+                        <div><span class="emoji">👤</span>Консультант: <span id="confirmConsultant">Имя консультанта</span></div>
+                        <div style="color: #666; font-size: 0.9rem; margin-top: 8px;">
+                            Вы подтверждаете свое участие в фестивале
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="status warning">
+                    ⚠️ <strong>Внимание!</strong> После регистрации изменить данные будет невозможно
+                </div>
+                
+                <button class="btn btn-success" onclick="registerParticipant()" id="registerBtn">
+                    <span class="emoji">🎉</span>Зарегистрироваться на фестивале
+                </button>
+            </div>
+
+            <!-- Шаг 4: Успешная регистрация -->
+            <div class="step" id="step4">
+                <div class="progress">
+                    <div class="progress-bar" style="width: 100%"></div>
+                </div>
+                
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
+                    <h2 style="color: #28a745; margin-bottom: 15px;">Регистрация завершена!</h2>
+                    <p style="color: #666; margin-bottom: 15px;">Добро пожаловать на фестиваль!</p>
+                    
+                    <div class="status success">
+                        <strong>✅ Вы успешно зарегистрированы</strong><br>
+                        <span id="registrationTime"></span>
+                    </div>
+                    
+                    <div style="margin: 20px 0; padding: 15px; background: #e3f7ff; border-radius: 12px;">
+                        <strong>🎉 Вы успешно зарегистрированы на фестивале!</strong><br>
+                        <span style="color: #666;">Добро пожаловать и хорошего времяпровождения!</span>
+                    </div>
+                    
+                    <button class="btn btn-secondary" onclick="resetForm()">
+                        👥 Зарегистрировать другого участника
+                    </button>
+                </div>
+            </div>
+
+            <!-- Шаг 5: Уже зарегистрирован -->
+            <div class="step" id="step5">
+                <div style="text-align: center; padding: 20px 0;">
+                    <div style="font-size: 4rem; margin-bottom: 20px;">✅</div>
+                    <h2 style="color: #17a2b8; margin-bottom: 15px;">Вы уже зарегистрированы!</h2>
+                    <p style="color: #666; margin-bottom: 20px;">Этот участник уже прошел регистрацию на фестиваль</p>
+                    
+                    <div class="status info" id="alreadyRegisteredInfo">
+                        <strong>Данные регистрации:</strong><br>
+                        <span id="existingRegistrationInfo"></span>
+                    </div>
+                    
                     <button class="btn btn-primary" onclick="resetForm()">
                         👥 Зарегистрировать другого участника
                     </button>
@@ -689,27 +838,27 @@
             
             <!-- Главная админ-панель -->
             <div id="adminPanel" style="display: none;">
-                <div style="background: #e8f5e8; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                        <div>
-                            <strong>✅ Авторизован как администратор</strong>
-                            <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
-                                Полный доступ к управлению системой
+                        <div style="background: #e8f5e8; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <strong>✅ Авторизован как администратор</strong>
+                                    <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
+                                        Полный доступ к управлению системой
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button class="btn btn-secondary" onclick="goToRegistration()" style="font-size: 0.8rem; padding: 6px 12px; width: auto;">
+                                        👥 Регистрация
+                                    </button>
+                                    <button class="btn btn-danger" onclick="logoutAdmin()" style="font-size: 0.8rem; padding: 6px 12px; width: auto;">
+                                        🚪 Выйти
+                                    </button>
+                                    <button class="btn btn-warning" onclick="clearAdminSession(); location.reload();" style="font-size: 0.7rem; padding: 4px 8px; width: auto;">
+                                        🔄 Сброс
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn btn-secondary" onclick="goToRegistration()" style="font-size: 0.8rem; padding: 6px 12px; width: auto;">
-                                👥 Регистрация
-                            </button>
-                            <button class="btn btn-danger" onclick="logoutAdmin()" style="font-size: 0.8rem; padding: 6px 12px; width: auto;">
-                                🚪 Выйти
-                            </button>
-                            <button class="btn btn-warning" onclick="clearAdminSession(); location.reload();" style="font-size: 0.7rem; padding: 4px 8px; width: auto;">
-                                🔄 Сброс
-                            </button>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Вкладки админки -->
                 <div class="admin-tabs">
@@ -879,9 +1028,6 @@
         let registrationEnabled = true;
         let isMobile = window.innerWidth < 768;
 
-        // Секретный ключ для дополнительной безопасности
-        const ADMIN_SECRET = 'festival2025_admin_key';
-
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
             getUserIP();
@@ -892,14 +1038,11 @@
             restoreAdminSession();
             
             // Обработчик Enter для админ-пароля
-            const adminPasswordInput = document.getElementById('adminPasswordInput');
-            if (adminPasswordInput) {
-                adminPasswordInput.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        loginAdmin();
-                    }
-                });
-            }
+            document.getElementById('adminPasswordInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    loginAdmin();
+                }
+            });
         });
 
         // Функция для сохранения сессии администратора
@@ -1080,6 +1223,7 @@
                 });
                 
                 organizeParticipantsData();
+            updateConsultantsList();
                 
             } catch (error) {
                 console.error("Ошибка загрузки участников:", error);
@@ -1124,13 +1268,6 @@
             
             updateConsultantsList();
             updateParticipantCount();
-        }
-
-        function updateParticipantCount() {
-            const participantCountElement = document.getElementById('participantCount');
-            if (participantCountElement) {
-                participantCountElement.textContent = `Участников: ${participantsData.length}`;
-            }
         }
 
         function loadTestData() {
@@ -1180,23 +1317,13 @@
             });
             
             setupDeviceSpecificElements();
-            
-            const consultantSearch = document.getElementById('consultantSearch');
-            const participantSearch = document.getElementById('participantSearch');
-            
-            if (consultantSearch) {
-                consultantSearch.addEventListener('input', filterConsultants);
-            }
-            if (participantSearch) {
-                participantSearch.addEventListener('input', filterParticipants);
-            }
+            document.getElementById('consultantSearch').addEventListener('input', filterConsultants);
+            document.getElementById('participantSearch').addEventListener('input', filterParticipants);
         }
 
         function setupDeviceSpecificElements() {
             const select = document.getElementById('consultantSelect');
             const mobileList = document.getElementById('consultantMobileList');
-            
-            if (!select || !mobileList) return;
             
             if (isMobile) {
                 // Мобильная версия
@@ -1214,10 +1341,7 @@
         }
 
         function updateConsultantsList() {
-            const consultantSearch = document.getElementById('consultantSearch');
-            if (!consultantSearch) return;
-            
-            const search = consultantSearch.value.toLowerCase();
+            const search = document.getElementById('consultantSearch').value.toLowerCase();
             const consultantNames = Object.keys(consultantsData).sort().filter(consultant => 
                 consultant.toLowerCase().includes(search)
             );
@@ -1233,8 +1357,6 @@
 
         function updateConsultantCards(consultantNames) {
             const container = document.getElementById('consultantCards');
-            if (!container) return;
-            
             container.innerHTML = '';
             
             consultantNames.forEach(consultant => {
@@ -1254,8 +1376,6 @@
 
         function updateConsultantSelect(consultantNames) {
             const select = document.getElementById('consultantSelect');
-            if (!select) return;
-            
             select.innerHTML = '<option value="">Выберите консультанта...</option>';
             
             consultantNames.forEach(consultant => {
@@ -1276,8 +1396,12 @@
             cardElement.classList.add('selected');
             
             selectedConsultant = consultant;
-            const nextBtn1 = document.getElementById('nextBtn1');
-            if (nextBtn1) nextBtn1.disabled = false;
+            document.getElementById('nextBtn1').disabled = false;
+        }
+
+        function updateParticipantCount() {
+            document.getElementById('participantCount').textContent = 
+                `Участников: ${participantsData.length}`;
         }
 
         function filterConsultants() {
@@ -1286,21 +1410,15 @@
 
         function handleConsultantSelect() {
             const select = document.getElementById('consultantSelect');
-            if (!select) return;
-            
             selectedConsultant = select.value;
-            const nextBtn1 = document.getElementById('nextBtn1');
-            if (nextBtn1) nextBtn1.disabled = !selectedConsultant;
+            document.getElementById('nextBtn1').disabled = !selectedConsultant;
         }
 
         function nextStep(stepNumber) {
             showStep(`step${stepNumber}`);
             
             if (stepNumber === 2) {
-                const selectedConsultantNameElement = document.getElementById('selectedConsultantName');
-                if (selectedConsultantNameElement) {
-                    selectedConsultantNameElement.textContent = selectedConsultant;
-                }
+                document.getElementById('selectedConsultantName').textContent = selectedConsultant;
                 updateParticipantsList();
                 updateRegistrationStats();
             } else if (stepNumber === 3) {
@@ -1314,19 +1432,12 @@
 
         function showStep(stepId) {
             document.querySelectorAll('.step').forEach(step => step.classList.remove('active'));
-            const targetStep = document.getElementById(stepId);
-            if (targetStep) {
-                targetStep.classList.add('active');
-            }
+            document.getElementById(stepId).classList.add('active');
         }
 
         function updateParticipantsList() {
             const container = document.getElementById('participantsList');
-            const participantSearch = document.getElementById('participantSearch');
-            
-            if (!container || !participantSearch) return;
-            
-            const search = participantSearch.value.toLowerCase();
+            const search = document.getElementById('participantSearch').value.toLowerCase();
             
             container.innerHTML = '';
             
@@ -1375,8 +1486,7 @@
             cardElement.classList.add('selected');
             
             selectedParticipant = participant;
-            const nextBtn2 = document.getElementById('nextBtn2');
-            if (nextBtn2) nextBtn2.disabled = false;
+            document.getElementById('nextBtn2').disabled = false;
         }
 
         function filterParticipants() {
@@ -1389,21 +1499,15 @@
             const participants = consultantsData[selectedConsultant];
             const registeredCount = participants.filter(p => registrationsData[p.id]).length;
             
-            const regCountElement = document.getElementById('regCount');
-            const totalCountElement = document.getElementById('totalCount');
-            
-            if (regCountElement) regCountElement.textContent = registeredCount;
-            if (totalCountElement) totalCountElement.textContent = participants.length;
+            document.getElementById('regCount').textContent = registeredCount;
+            document.getElementById('totalCount').textContent = participants.length;
         }
 
         function updateConfirmationCard() {
             if (!selectedParticipant) return;
             
-            const confirmNameElement = document.getElementById('confirmName');
-            const confirmConsultantElement = document.getElementById('confirmConsultant');
-            
-            if (confirmNameElement) confirmNameElement.textContent = selectedParticipant.name;
-            if (confirmConsultantElement) confirmConsultantElement.textContent = selectedParticipant.consultant;
+            document.getElementById('confirmName').textContent = selectedParticipant.name;
+            document.getElementById('confirmConsultant').textContent = selectedParticipant.consultant;
         }
 
         async function registerParticipant() {
@@ -1432,11 +1536,8 @@
                 }
                 
                 // Отключаем кнопку регистрации
-                const registerBtn = document.getElementById('registerBtn');
-                if (registerBtn) {
-                    registerBtn.disabled = true;
-                    registerBtn.textContent = 'Регистрация...';
-                }
+                document.getElementById('registerBtn').disabled = true;
+                document.getElementById('registerBtn').textContent = 'Регистрация...';
                 
                 const registrationData = {
                     participantId: selectedParticipant.id,
@@ -1474,19 +1575,14 @@
                 showGlobalStatus("Ошибка регистрации: " + error.message, 'error');
                 
                 // Возвращаем кнопку в исходное состояние
-                const registerBtn = document.getElementById('registerBtn');
-                if (registerBtn) {
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = '<span class="emoji">🎉</span>Зарегистрироваться на фестивале';
-                }
+                document.getElementById('registerBtn').disabled = false;
+                document.getElementById('registerBtn').innerHTML = '<span class="emoji">🎉</span>Зарегистрироваться на фестивале';
             }
         }
 
         function showSuccessfulRegistration() {
-            const registrationTimeElement = document.getElementById('registrationTime');
-            if (registrationTimeElement) {
-                registrationTimeElement.textContent = `Время: ${new Date().toLocaleTimeString('ru-RU')}`;
-            }
+            document.getElementById('registrationTime').textContent = 
+                `Время: ${new Date().toLocaleTimeString('ru-RU')}`;
             
             showStep('step4');
             showGlobalStatus(`${selectedParticipant.name} успешно зарегистрирован!`, 'success');
@@ -1494,14 +1590,10 @@
 
         function showAlreadyRegistered() {
             const regData = registrationsData[selectedParticipant.id];
-            const existingInfoElement = document.getElementById('existingRegistrationInfo');
-            
-            if (existingInfoElement && regData) {
-                existingInfoElement.innerHTML = `
-                    <strong>${selectedParticipant.name}</strong><br>
-                    Время регистрации: ${new Date(regData.registeredAt).toLocaleString('ru-RU')}
-                `;
-            }
+            document.getElementById('existingRegistrationInfo').innerHTML = `
+                <strong>${selectedParticipant.name}</strong><br>
+                Время регистрации: ${new Date(regData.registeredAt).toLocaleString('ru-RU')}
+            `;
             
             showStep('step5');
         }
@@ -1510,22 +1602,13 @@
             selectedConsultant = '';
             selectedParticipant = null;
             
-            const consultantSelect = document.getElementById('consultantSelect');
-            const consultantSearch = document.getElementById('consultantSearch');
-            const participantSearch = document.getElementById('participantSearch');
-            const nextBtn1 = document.getElementById('nextBtn1');
-            const nextBtn2 = document.getElementById('nextBtn2');
-            const registerBtn = document.getElementById('registerBtn');
-            
-            if (consultantSelect) consultantSelect.value = '';
-            if (consultantSearch) consultantSearch.value = '';
-            if (participantSearch) participantSearch.value = '';
-            if (nextBtn1) nextBtn1.disabled = true;
-            if (nextBtn2) nextBtn2.disabled = true;
-            if (registerBtn) {
-                registerBtn.disabled = false;
-                registerBtn.innerHTML = '<span class="emoji">🎉</span>Зарегистрироваться на фестивале';
-            }
+            document.getElementById('consultantSelect').value = '';
+            document.getElementById('consultantSearch').value = '';
+            document.getElementById('participantSearch').value = '';
+            document.getElementById('nextBtn1').disabled = true;
+            document.getElementById('nextBtn2').disabled = true;
+            document.getElementById('registerBtn').disabled = false;
+            document.getElementById('registerBtn').innerHTML = '<span class="emoji">🎉</span>Зарегистрироваться на фестивале';
             
             updateConsultantsList();
             showStep('step1');
@@ -1544,12 +1627,10 @@
 
         // Функции админ-панели
         function loginAdmin() {
-            const inputPassword = document.getElementById('adminPasswordInput');
+            const inputPassword = document.getElementById('adminPasswordInput').value;
             const errorElement = document.getElementById('loginError');
             
-            if (!inputPassword || !errorElement) return;
-            
-            if (inputPassword.value === adminSettings.password) {
+            if (inputPassword === adminSettings.password) {
                 isAdminAuthenticated = true;
                 
                 // Сохраняем сессию администратора
@@ -1557,14 +1638,10 @@
                 
                 showAdminPanel();
                 showGlobalStatus('Вход в админ-панель выполнен', 'success');
-                
-                // Очищаем поле пароля
-                inputPassword.value = '';
-                errorElement.style.display = 'none';
             } else {
                 errorElement.textContent = '❌ Неверный пароль администратора';
                 errorElement.style.display = 'block';
-                inputPassword.value = '';
+                document.getElementById('adminPasswordInput').value = '';
             }
         }
 
@@ -1576,71 +1653,45 @@
             
             // Сжимаем контейнер админ-панели
             const adminContainer = document.getElementById('adminContainer');
-            if (adminContainer) {
-                adminContainer.classList.remove('expanded');
-            }
+            adminContainer.classList.remove('expanded');
             
             // Возвращаем исходный заголовок
             const header = adminContainer.querySelector('.header');
-            if (header) {
-                header.innerHTML = `
-                    <h1 style="font-size: 1.4rem; margin-bottom: 5px;">🔧 Администратор</h1>
-                    <p style="font-size: 0.85rem;">Панель управления</p>
-                `;
-                header.style.background = 'linear-gradient(135deg, #6c757d 0%, #495057 100%)';
-                header.style.padding = '15px';
-            }
+            header.innerHTML = `
+                <h1 style="font-size: 1.4rem; margin-bottom: 5px;">🔧 Администратор</h1>
+                <p style="font-size: 0.85rem;">Панель управления</p>
+            `;
+            header.style.background = 'linear-gradient(135deg, #6c757d 0%, #495057 100%)';
+            header.style.padding = '15px';
             
-            const adminLoginSection = document.getElementById('adminLoginSection');
-            const adminPanel = document.getElementById('adminPanel');
-            const adminPasswordInput = document.getElementById('adminPasswordInput');
-            const loginError = document.getElementById('loginError');
-            
-            if (adminLoginSection) adminLoginSection.style.display = 'block';
-            if (adminPanel) adminPanel.style.display = 'none';
-            if (adminPasswordInput) adminPasswordInput.value = '';
-            if (loginError) loginError.style.display = 'none';
-            
+            document.getElementById('adminLoginSection').style.display = 'block';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('adminPasswordInput').value = '';
+            document.getElementById('loginError').style.display = 'none';
             showGlobalStatus('Выход из админ-панели', 'info');
         }
 
         function showAdminPanel() {
-            const adminLoginSection = document.getElementById('adminLoginSection');
-            const adminPanel = document.getElementById('adminPanel');
-            
-            if (adminLoginSection) adminLoginSection.style.display = 'none';
-            if (adminPanel) adminPanel.style.display = 'block';
+            document.getElementById('adminLoginSection').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
             
             // Расширяем контейнер админ-панели
             const adminContainer = document.getElementById('adminContainer');
-            if (adminContainer) {
-                adminContainer.classList.add('expanded');
-            }
+            adminContainer.classList.add('expanded');
             
             // Обновляем заголовок
             const header = adminContainer.querySelector('.header');
-            if (header) {
-                header.innerHTML = `
-                    <h1 style="font-size: 1.8rem; margin-bottom: 8px;">🔧 Администрирование</h1>
-                    <p style="font-size: 1rem;">Управление системой регистрации</p>
-                `;
-                header.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
-                header.style.padding = '25px 20px';
-            }
+            header.innerHTML = `
+                <h1 style="font-size: 1.8rem; margin-bottom: 8px;">🔧 Администрирование</h1>
+                <p style="font-size: 1rem;">Управление системой регистрации</p>
+            `;
+            header.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+            header.style.padding = '25px 20px';
             
             updateAdminStats();
             updateAdminPreview();
-            
-            const currentPasswordElement = document.getElementById('currentPassword');
-            const registrationToggle = document.getElementById('registrationToggle');
-            
-            if (currentPasswordElement) {
-                currentPasswordElement.textContent = adminSettings.password;
-            }
-            if (registrationToggle) {
-                registrationToggle.checked = registrationEnabled;
-            }
-            
+            document.getElementById('currentPassword').textContent = adminSettings.password;
+            document.getElementById('registrationToggle').checked = registrationEnabled;
             updateRegistrationStatusText();
         }
 
@@ -1654,14 +1705,9 @@
                 content.style.display = 'none';
             });
             
-            const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
-            const activeContent = document.getElementById(tabName + 'Tab');
-            
-            if (activeTab) activeTab.classList.add('active');
-            if (activeContent) {
-                activeContent.classList.add('active');
-                activeContent.style.display = 'block';
-            }
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            document.getElementById(tabName + 'Tab').style.display = 'block';
             
             if (tabName === 'preview') {
                 updateAdminPreview();
@@ -1676,29 +1722,24 @@
                 content.classList.remove('active');
             });
             
-            const activeTab = document.querySelector(`[data-tab="${tabName}"]`);
-            const activeContent = document.getElementById(tabName + 'Preview');
-            
-            if (activeTab) activeTab.classList.add('active');
-            if (activeContent) activeContent.classList.add('active');
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(tabName + 'Preview').classList.add('active');
             
             updateAdminPreview();
         }
+
+        // Секретный ключ для дополнительной безопасности
+        const ADMIN_SECRET = 'festival2025_admin_key';
 
         async function toggleRegistration() {
             try {
                 if (!isAdminAuthenticated) {
                     showGlobalStatus('Необходима авторизация администратора', 'error');
-                    const registrationToggle = document.getElementById('registrationToggle');
-                    if (registrationToggle) {
-                        registrationToggle.checked = registrationEnabled;
-                    }
+                    document.getElementById('registrationToggle').checked = registrationEnabled;
                     return;
                 }
                 
                 const toggle = document.getElementById('registrationToggle');
-                if (!toggle) return;
-                
                 const newStatus = toggle.checked;
                 
                 showGlobalStatus('Обновление настроек...', 'info');
@@ -1735,8 +1776,7 @@
                 updateRegistrationStatusText();
                 
                 // Показываем успех только если нет серьезных ошибок
-                const globalStatus = document.getElementById('globalStatus');
-                if (!globalStatus || !globalStatus.textContent.includes('недоступен')) {
+                if (!document.getElementById('globalStatus').textContent.includes('недоступен')) {
                     showGlobalStatus(
                         registrationEnabled ? 'Регистрация открыта ✅' : 'Регистрация закрыта ❌', 
                         registrationEnabled ? 'success' : 'warning'
@@ -1751,9 +1791,7 @@
                 
                 // Возвращаем переключатель в исходное состояние
                 const toggle = document.getElementById('registrationToggle');
-                if (toggle) {
-                    toggle.checked = registrationEnabled;
-                }
+                toggle.checked = registrationEnabled;
             }
         }
 
@@ -1794,29 +1832,23 @@
             const totalChances = Object.values(registrationsData).reduce((sum, r) => sum + r.chances, 0);
             const totalWeight = Object.values(registrationsData).reduce((sum, r) => sum + (r.weight || 0), 0);
             
-            const previewStats = document.getElementById('previewStats');
-            if (previewStats) {
-                previewStats.innerHTML = `
-                    <div style="text-align: center; padding: 10px; background: #e3f7ff; border-radius: 8px;">
-                        <div style="font-size: 1.2rem; font-weight: bold; color: #4facfe;">${registeredCount}</div>
-                        <div style="font-size: 0.8rem; color: #666;">Зарегистрировано</div>
-                    </div>
-                    <div style="text-align: center; padding: 10px; background: #e8f5e8; border-radius: 8px;">
-                        <div style="font-size: 1.2rem; font-weight: bold; color: #28a745;">${totalChances}</div>
-                        <div style="font-size: 0.8rem; color: #666;">Честных шансов</div>
-                    </div>
-                    <div style="text-align: center; padding: 10px; background: #fff3cd; border-radius: 8px;">
-                        <div style="font-size: 1.2rem; font-weight: bold; color: #856404;">${totalWeight}</div>
-                        <div style="font-size: 0.8rem; color: #666;">Кг зарегистрированных</div>
-                    </div>
-                `;
-            }
+            document.getElementById('previewStats').innerHTML = `
+                <div style="text-align: center; padding: 10px; background: #e3f7ff; border-radius: 8px;">
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #4facfe;">${registeredCount}</div>
+                    <div style="font-size: 0.8rem; color: #666;">Зарегистрировано</div>
+                </div>
+                <div style="text-align: center; padding: 10px; background: #e8f5e8; border-radius: 8px;">
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #28a745;">${totalChances}</div>
+                    <div style="font-size: 0.8rem; color: #666;">Честных шансов</div>
+                </div>
+                <div style="text-align: center; padding: 10px; background: #fff3cd; border-radius: 8px;">
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #856404;">${totalWeight}</div>
+                    <div style="font-size: 0.8rem; color: #666;">Кг зарегистрированных</div>
+                </div>
+            `;
         }
 
         function updateChancesPreview() {
-            const chancesPreview = document.getElementById('chancesPreview');
-            if (!chancesPreview) return;
-            
             const lotteryEntries = [];
             Object.values(registrationsData).forEach(reg => {
                 for (let i = 0; i < reg.chances; i++) {
@@ -1830,13 +1862,13 @@
                 html += '<div style="text-align: center; color: #666; padding: 20px;">Пока нет зарегистрированных участников</div>';
             } else {
                 html += '<div style="margin-bottom: 15px; text-align: center;">';
-                html += '<button class="randomize-btn" onclick="randomizeChancesList()">🎲 Перемешать список</button>';
+                html += '<button class="randomize-btn" onclick="window.randomizeChancesList()">🎲 Перемешать список</button>';
                 
                 // Проверяем, есть ли данные для копирования
                 const displayList = window.randomizedChancesList || lotteryEntries;
                 const hasDataToCopy = displayList.length > 0;
                 
-                html += `<button class="copy-btn" onclick="copyChancesToClipboard()" ${hasDataToCopy ? '' : 'disabled'}>📋 Копировать</button>`;
+                html += `<button class="copy-btn" onclick="window.copyChancesToClipboard()" ${hasDataToCopy ? '' : 'disabled'}>📋 Копировать</button>`;
                 html += '</div>';
                 
                 html += '<h3>Предварительный просмотр лотереи:</h3>';
@@ -1853,11 +1885,30 @@
                 </div>`;
             }
             
-            chancesPreview.innerHTML = html;
+            document.getElementById('chancesPreview').innerHTML = html;
         }
 
-        // Исправляем глобальные функции
+        // Функция рандомизации списка шансов
         function randomizeChancesList() {
+            const lotteryEntries = [];
+            Object.values(registrationsData).forEach(reg => {
+                for (let i = 0; i < reg.chances; i++) {
+                    lotteryEntries.push(reg.name);
+                }
+            });
+            
+            if (lotteryEntries.length > 0) {
+                // Создаем рандомизированный список и сохраняем глобально
+                window.randomizedChancesList = shuffleArray(lotteryEntries);
+                updateChancesPreview();
+                showGlobalStatus('Список лотереи перемешан!', 'success');
+            } else {
+                showGlobalStatus('Нет участников для перемешивания', 'warning');
+            }
+        }
+
+        // Делаем функцию глобально доступной
+        window.randomizeChancesList = function() {
             const lotteryEntries = [];
             Object.values(registrationsData).forEach(reg => {
                 for (let i = 0; i < reg.chances; i++) {
@@ -1874,112 +1925,7 @@
             } else {
                 showGlobalStatus('Нет участников для перемешивания', 'warning');
             }
-        }
-
-        // Функция копирования списка шансов в буфер обмена
-        function copyChancesToClipboard() {
-            try {
-                const lotteryEntries = [];
-                Object.values(registrationsData).forEach(reg => {
-                    for (let i = 0; i < reg.chances; i++) {
-                        lotteryEntries.push(reg.name);
-                    }
-                });
-                
-                // Используем рандомизированный список, если он есть, иначе исходный
-                const displayList = window.randomizedChancesList || lotteryEntries;
-                
-                if (displayList.length === 0) {
-                    showGlobalStatus('Нет участников для копирования', 'warning');
-                    return;
-                }
-                
-                // Формируем текст для копирования
-                const textToCopy = displayList.join('\n');
-                
-                // Копируем в буфер обмена
-                if (navigator.clipboard && window.isSecureContext) {
-                    // Современный способ для HTTPS
-                    navigator.clipboard.writeText(textToCopy).then(() => {
-                        const listType = window.randomizedChancesList ? 'перемешанный' : 'исходный';
-                        showGlobalStatus(`📋 Скопировано ${displayList.length} записей (${listType} список)`, 'success');
-                        console.log('Список скопирован в буфер:', displayList.slice(0, 5), '...');
-                    }).catch(error => {
-                        console.error('Ошибка копирования:', error);
-                        showFallbackCopyModal(textToCopy);
-                    });
-                } else {
-                    // Fallback для HTTP или старых браузеров
-                    const textArea = document.createElement('textarea');
-                    textArea.value = textToCopy;
-                    textArea.style.position = 'fixed';
-                    textArea.style.left = '-999999px';
-                    textArea.style.top = '-999999px';
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    
-                    try {
-                        document.execCommand('copy');
-                        textArea.remove();
-                        const listType = window.randomizedChancesList ? 'перемешанный' : 'исходный';
-                        showGlobalStatus(`📋 Скопировано ${displayList.length} записей (${listType} список)`, 'success');
-                        console.log('Список скопирован в буфер:', displayList.slice(0, 5), '...');
-                    } catch (err) {
-                        textArea.remove();
-                        showFallbackCopyModal(textToCopy);
-                    }
-                }
-                
-            } catch (error) {
-                console.error('Ошибка копирования:', error);
-                showGlobalStatus('Ошибка копирования в буфер обмена', 'error');
-            }
-        }
-
-        function showFallbackCopyModal(textToCopy) {
-            // Создаем модальное окно с текстом для ручного копирования
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                background: rgba(0,0,0,0.5); z-index: 9999; display: flex; 
-                align-items: center; justify-content: center;
-            `;
-            
-            modal.innerHTML = `
-                <div style="background: white; padding: 20px; border-radius: 10px; max-width: 90%; max-height: 90%; overflow: auto;">
-                    <h3>Скопируйте текст вручную:</h3>
-                    <textarea readonly style="width: 100%; height: 300px; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">${textToCopy}</textarea>
-                    <button onclick="this.parentElement.parentElement.remove()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Закрыть</button>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-            
-            // Выделяем текст в textarea
-            setTimeout(() => {
-                const textarea = modal.querySelector('textarea');
-                if (textarea) {
-                    textarea.focus();
-                    textarea.select();
-                }
-            }, 100);
-        }
-
-        // Делаем функции глобально доступными
-        window.randomizeChancesList = randomizeChancesList;
-        window.copyChancesToClipboard = copyChancesToClipboard;
-
-        function shuffleArray(array) {
-            const shuffled = array.slice();
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                const temp = shuffled[i];
-                shuffled[i] = shuffled[j];
-                shuffled[j] = temp;
-            }
-            return shuffled;
-        }
+        };
 
         function updateConsultantsPreview() {
             let html = '<h3>Клиенты по консультантам (зарегистрированные):</h3>';
@@ -2017,10 +1963,7 @@
                 });
             }
             
-            const consultantsPreview = document.getElementById('consultantsPreview');
-            if (consultantsPreview) {
-                consultantsPreview.innerHTML = html;
-            }
+            document.getElementById('consultantsPreview').innerHTML = html;
         }
 
         function updateWeightPreview() {
@@ -2061,10 +2004,7 @@
                 });
             }
             
-            const weightPreview = document.getElementById('weightPreview');
-            if (weightPreview) {
-                weightPreview.innerHTML = html;
-            }
+            document.getElementById('weightPreview').innerHTML = html;
         }
 
         function updateMedalsPreview() {
@@ -2108,24 +2048,19 @@
                 html += '<div style="text-align: center; color: #666; padding: 20px;">Нет зарегистрированных медалистов</div>';
             }
             
-            const medalsPreview = document.getElementById('medalsPreview');
-            if (medalsPreview) {
-                medalsPreview.innerHTML = html;
-            }
+            document.getElementById('medalsPreview').innerHTML = html;
         }
 
         window.toggleConsultantClients = function(consultantId) {
             const content = document.getElementById(consultantId);
             const icon = document.getElementById('icon-' + consultantId);
             
-            if (content && icon) {
-                if (content.classList.contains('active')) {
-                    content.classList.remove('active');
-                    icon.textContent = '▶';
-                } else {
-                    content.classList.add('active');
-                    icon.textContent = '▼';
-                }
+            if (content.classList.contains('active')) {
+                content.classList.remove('active');
+                icon.textContent = '▶';
+            } else {
+                content.classList.add('active');
+                icon.textContent = '▼';
             }
         };
 
@@ -2341,13 +2276,8 @@
         }
 
         async function changeAdminPassword() {
-            const newPasswordInput = document.getElementById('newPasswordInput');
-            const confirmPasswordInput = document.getElementById('confirmPasswordInput');
-            
-            if (!newPasswordInput || !confirmPasswordInput) return;
-            
-            const newPassword = newPasswordInput.value;
-            const confirmPassword = confirmPasswordInput.value;
+            const newPassword = document.getElementById('newPasswordInput').value;
+            const confirmPassword = document.getElementById('confirmPasswordInput').value;
             
             if (!newPassword || newPassword.length < 4) {
                 showGlobalStatus('Пароль должен содержать минимум 4 символа', 'error');
@@ -2367,13 +2297,9 @@
                     await db.collection('settings').doc('admin').set(adminSettings, { merge: true });
                 }
                 
-                newPasswordInput.value = '';
-                confirmPasswordInput.value = '';
-                
-                const currentPasswordElement = document.getElementById('currentPassword');
-                if (currentPasswordElement) {
-                    currentPasswordElement.textContent = newPassword;
-                }
+                document.getElementById('newPasswordInput').value = '';
+                document.getElementById('confirmPasswordInput').value = '';
+                document.getElementById('currentPassword').textContent = newPassword;
                 
                 showGlobalStatus('Пароль администратора изменен', 'success');
                 
@@ -2422,9 +2348,7 @@
             const container = document.getElementById('registrationsList');
             if (!container) return;
             
-            const searchInput = document.getElementById('registrationSearch');
-            const search = searchInput ? searchInput.value.toLowerCase() : '';
-            
+            const search = document.getElementById('registrationSearch').value.toLowerCase();
             const registrations = Object.values(registrationsData).filter(reg => 
                 reg.name.toLowerCase().includes(search)
             );
@@ -2448,7 +2372,7 @@
                                 ${new Date(reg.registeredAt).toLocaleString('ru-RU')}
                             </div>
                         </div>
-                        <button class="btn-small btn-remove" onclick="window.removeRegistration('${reg.participantId}', '${reg.name}')">
+                        <button class="btn-small btn-remove" onclick="removeRegistration('${reg.participantId}', '${reg.name}')">
                             🗑️ Удалить
                         </button>
                     </div>
@@ -2463,7 +2387,89 @@
             updateRegistrationsList();
         }
 
-        // Делаем функции глобально доступными для HTML onclick
+        // Функция копирования списка шансов в буфер обмена
+        window.copyChancesToClipboard = async function() {
+            try {
+                const lotteryEntries = [];
+                Object.values(registrationsData).forEach(reg => {
+                    for (let i = 0; i < reg.chances; i++) {
+                        lotteryEntries.push(reg.name);
+                    }
+                });
+                
+                // Используем рандомизированный список, если он есть, иначе исходный
+                const displayList = window.randomizedChancesList || lotteryEntries;
+                
+                if (displayList.length === 0) {
+                    showGlobalStatus('Нет участников для копирования', 'warning');
+                    return;
+                }
+                
+                // Формируем текст для копирования
+                const textToCopy = displayList.join('\n');
+                
+                // Копируем в буфер обмена
+                if (navigator.clipboard && window.isSecureContext) {
+                    // Современный способ для HTTPS
+                    await navigator.clipboard.writeText(textToCopy);
+                } else {
+                    // Fallback для HTTP или старых браузеров
+                    const textArea = document.createElement('textarea');
+                    textArea.value = textToCopy;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    try {
+                        document.execCommand('copy');
+                        textArea.remove();
+                    } catch (err) {
+                        textArea.remove();
+                        throw new Error('Не удалось скопировать');
+                    }
+                }
+                
+                const listType = window.randomizedChancesList ? 'перемешанный' : 'исходный';
+                showGlobalStatus(`📋 Скопировано ${displayList.length} записей (${listType} список)`, 'success');
+                console.log('Список скопирован в буфер:', displayList.slice(0, 5), '...');
+                
+            } catch (error) {
+                console.error('Ошибка копирования:', error);
+                showGlobalStatus('Ошибка копирования в буфер обмена', 'error');
+                
+                // Показываем альтернативный способ
+                const displayList = window.randomizedChancesList || lotteryEntries;
+                const textToCopy = displayList.join('\n');
+                
+                // Создаем модальное окно с текстом для ручного копирования
+                const modal = document.createElement('div');
+                modal.style.cssText = `
+                    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                    background: rgba(0,0,0,0.5); z-index: 9999; display: flex; 
+                    align-items: center; justify-content: center;
+                `;
+                
+                modal.innerHTML = `
+                    <div style="background: white; padding: 20px; border-radius: 10px; max-width: 90%; max-height: 90%; overflow: auto;">
+                        <h3>Скопируйте текст вручную:</h3>
+                        <textarea readonly style="width: 100%; height: 300px; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">${textToCopy}</textarea>
+                        <button onclick="this.parentElement.parentElement.remove()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Закрыть</button>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Выделяем текст в textarea
+                setTimeout(() => {
+                    const textarea = modal.querySelector('textarea');
+                    textarea.focus();
+                    textarea.select();
+                }, 100);
+            }
+        };
         window.removeRegistration = async function(participantId, participantName) {
             if (!confirm(`Вы уверены, что хотите удалить регистрацию участника "${participantName}"?`)) {
                 return;
@@ -2503,24 +2509,19 @@
         };
 
         function showError(message) {
-            const errorMessageElement = document.getElementById('errorMessage');
-            if (errorMessageElement) {
-                errorMessageElement.textContent = message;
-            }
+            document.getElementById('errorMessage').textContent = message;
             showStep('errorStep');
         }
 
         function showGlobalStatus(message, type = 'info') {
             const statusElement = document.getElementById('globalStatus');
-            if (statusElement) {
-                statusElement.textContent = message;
-                statusElement.className = `status ${type}`;
-                statusElement.style.display = 'block';
-                
-                setTimeout(() => {
-                    statusElement.style.display = 'none';
-                }, 5000);
-            }
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+            statusElement.style.display = 'block';
+            
+            setTimeout(() => {
+                statusElement.style.display = 'none';
+            }, 5000);
         }
 
         // Периодическое обновление данных
@@ -2541,148 +2542,4 @@
         }, 10000); // Обновление каждые 10 секунд
     </script>
 </body>
-</html>="location.reload()">
-                        🔄 Попробовать снова
-                    </button>
-                </div>
-            </div>
-
-            <!-- Регистрация закрыта -->
-            <div class="step" id="registrationClosedStep">
-                <div class="registration-closed">
-                    <div style="font-size: 3rem; margin-bottom: 15px;">🔒</div>
-                    <h2 style="margin-bottom: 15px;">Регистрация закрыта</h2>
-                    <p>Организаторы временно приостановили регистрацию участников.</p>
-                    <p style="margin-top: 10px;">Попробуйте позже или обратитесь к администратору.</p>
-                    <button class="btn btn-primary" onclick="location.reload()" style="margin-top: 20px;">
-                        🔄 Обновить страницу
-                    </button>
-                </div>
-            </div>
-
-            <!-- Шаг 1: Выбор консультанта -->
-            <div class="step" id="step1">
-                <div class="progress">
-                    <div class="progress-bar" style="width: 25%"></div>
-                </div>
-                
-                <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #e3f7ff; border-radius: 12px;">
-                    <strong>📅 Ежемесячный фестиваль</strong><br>
-                    <span id="participantCount">Участников: 0</span>
-                </div>
-                
-                <h2 style="margin-bottom: 10px;">👤 Ваш консультант</h2>
-                <p style="color: #666; margin-bottom: 20px;">Выберите консультанта, который пригласил вас на фестиваль</p>
-                
-                <div class="form-group">
-                    <input type="text" class="search-box" id="consultantSearch" placeholder="🔍 Поиск консультанта...">
-                    <!-- Мобильная версия -->
-                    <div id="consultantMobileList" style="display: block;">
-                        <div id="consultantCards" class="consultants-grid"></div>
-                    </div>
-                    <!-- ПК версия (скрыта на мобильных) -->
-                    <select id="consultantSelect" size="5" style="height: 160px; display: none;">
-                        <option value="">Выберите консультанта...</option>
-                    </select>
-                </div>
-                
-                <button class="btn btn-primary" onclick="nextStep(2)" disabled id="nextBtn1">
-                    Продолжить <span class="emoji">➡️</span>
-                </button>
-            </div>
-
-            <!-- Шаг 2: Выбор участника -->
-            <div class="step" id="step2">
-                <div class="progress">
-                    <div class="progress-bar" style="width: 50%"></div>
-                </div>
-                
-                <button class="back-btn" onclick="prevStep(1)">⬅️ Назад к консультантам</button>
-                
-                <h2 style="margin-bottom: 10px;">🎯 Найдите себя</h2>
-                <p style="color: #666; margin-bottom: 10px;">Консультант: <strong id="selectedConsultantName"></strong></p>
-                
-                <div class="stats-card" id="registrationStats">
-                    👥 Зарегистрировано: <span id="regCount">0</span> из <span id="totalCount">0</span>
-                </div>
-                
-                <div class="form-group">
-                    <input type="text" class="search-box" id="participantSearch" placeholder="🔍 Введите ваше имя...">
-                    <div id="participantsList" style="max-height: 260px; overflow-y: auto;"></div>
-                </div>
-                
-                <button class="btn btn-primary" onclick="nextStep(3)" disabled id="nextBtn2">
-                    Подтвердить выбор <span class="emoji">✅</span>
-                </button>
-            </div>
-
-            <!-- Шаг 3: Подтверждение -->
-            <div class="step" id="step3">
-                <div class="progress">
-                    <div class="progress-bar" style="width: 75%"></div>
-                </div>
-                
-                <button class="back-btn" onclick="prevStep(2)">⬅️ Назад к списку</button>
-                
-                <h2 style="margin-bottom: 15px;">✅ Подтверждение регистрации</h2>
-                <p style="color: #666; margin-bottom: 20px;">Проверьте правильность данных перед регистрацией</p>
-                
-                <div class="participant-card" style="border-color: #28a745; background: #d4edda;" id="confirmationCard">
-                    <div class="participant-name" id="confirmName">Имя участника</div>
-                    <div class="participant-info">
-                        <div><span class="emoji">👤</span>Консультант: <span id="confirmConsultant">Имя консультанта</span></div>
-                        <div style="color: #666; font-size: 0.9rem; margin-top: 8px;">
-                            Вы подтверждаете свое участие в фестивале
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="status warning">
-                    ⚠️ <strong>Внимание!</strong> После регистрации изменить данные будет невозможно
-                </div>
-                
-                <button class="btn btn-success" onclick="registerParticipant()" id="registerBtn">
-                    <span class="emoji">🎉</span>Зарегистрироваться на фестивале
-                </button>
-            </div>
-
-            <!-- Шаг 4: Успешная регистрация -->
-            <div class="step" id="step4">
-                <div class="progress">
-                    <div class="progress-bar" style="width: 100%"></div>
-                </div>
-                
-                <div style="text-align: center; padding: 20px 0;">
-                    <div style="font-size: 4rem; margin-bottom: 20px;">🎉</div>
-                    <h2 style="color: #28a745; margin-bottom: 15px;">Регистрация завершена!</h2>
-                    <p style="color: #666; margin-bottom: 15px;">Добро пожаловать на фестиваль!</p>
-                    
-                    <div class="status success">
-                        <strong>✅ Вы успешно зарегистрированы</strong><br>
-                        <span id="registrationTime"></span>
-                    </div>
-                    
-                    <div style="margin: 20px 0; padding: 15px; background: #e3f7ff; border-radius: 12px;">
-                        <strong>🎉 Вы успешно зарегистрированы на фестивале!</strong><br>
-                        <span style="color: #666;">Добро пожаловать и хорошего времяпровождения!</span>
-                    </div>
-                    
-                    <button class="btn btn-secondary" onclick="resetForm()">
-                        👥 Зарегистрировать другого участника
-                    </button>
-                </div>
-            </div>
-
-            <!-- Шаг 5: Уже зарегистрирован -->
-            <div class="step" id="step5">
-                <div style="text-align: center; padding: 20px 0;">
-                    <div style="font-size: 4rem; margin-bottom: 20px;">✅</div>
-                    <h2 style="color: #17a2b8; margin-bottom: 15px;">Вы уже зарегистрированы!</h2>
-                    <p style="color: #666; margin-bottom: 20px;">Этот участник уже прошел регистрацию на фестиваль</p>
-                    
-                    <div class="status info" id="alreadyRegisteredInfo">
-                        <strong>Данные регистрации:</strong><br>
-                        <span id="existingRegistrationInfo"></span>
-                    </div>
-                    
-                    <button class="btn btn-primary" onclick
+</html>
