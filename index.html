@@ -94,30 +94,9 @@
                 </div>
             </div>
 
-            <!-- Превью для обычных пользователей (отображается ниже админ-панели, всегда видимо если есть регистрации) -->
+            <!-- Превью для обычных пользователей (СКРЫТО - показывается только для админов в админ-панели) -->
             <div id="publicPreview" style="display: none; margin-top: 30px;">
-                <h2>📊 Статистика регистрации</h2>
-                <div id="publicPreviewStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0;"></div>
-                
-                <div class="preview-tabs">
-                    <button class="preview-tab active" data-tab="chances" onclick="switchPublicPreviewTab('chances')">
-                        🎲 Шансы
-                    </button>
-                    <button class="preview-tab" data-tab="consultants" onclick="switchPublicPreviewTab('consultants')">
-                        👥 Консультанты
-                    </button>
-                    <button class="preview-tab" data-tab="weight" onclick="switchPublicPreviewTab('weight')">
-                        ⚖️ Вес
-                    </button>
-                    <button class="preview-tab" data-tab="medals" onclick="switchPublicPreviewTab('medals')">
-                        🏆 Медали
-                    </button>
-                </div>
-
-                <div class="preview-tab-content active" id="publicChancesPreview"></div>
-                <div class="preview-tab-content" id="publicConsultantsPreview"></div>
-                <div class="preview-tab-content" id="publicWeightPreview"></div>
-                <div class="preview-tab-content" id="publicMedalsPreview"></div>
+                <!-- Этот блок больше не используется -->
             </div>
         </div>
 
@@ -664,8 +643,7 @@
             if (isAdminAuthenticated) {
                 updateAdminPreview();
             }
-            // Обновляем публичное превью только если есть регистрации
-            updatePublicPreview();
+            // Публичное превью НЕ обновляем - оно должно быть скрыто
         }
 
         function updatePublicPreview() {
@@ -962,24 +940,29 @@
         }
 
         async function toggleRegistration() {
-            if (!isAdminAuthenticated) {
-                showGlobalStatus('Необходима авторизация администратора', 'error');
-                return;
-            }
-            
-            const toggle = document.getElementById('registrationToggle');
-            registrationEnabled = toggle.checked;
-            
             try {
-                adminSettings.registrationEnabled = registrationEnabled;
+                if (!isAdminAuthenticated) {
+                    showGlobalStatus('Необходима авторизация администратора', 'error');
+                    // Возвращаем переключатель в исходное состояние
+                    document.getElementById('registrationToggle').checked = registrationEnabled;
+                    return;
+                }
+                
+                const toggle = document.getElementById('registrationToggle');
+                const newStatus = toggle.checked;
+                
+                // Обновляем настройки
+                adminSettings.registrationEnabled = newStatus;
                 adminSettings.lastChanged = new Date().toISOString();
                 
                 if (db) {
                     await db.collection('settings').doc('admin').set(adminSettings);
                 }
                 
+                // Обновляем локальную переменную
+                registrationEnabled = newStatus;
+                
                 updateRegistrationStatusText();
-                updatePublicPreview(); // Обновляем превью для обычных пользователей
                 
                 showGlobalStatus(
                     registrationEnabled ? 'Регистрация открыта' : 'Регистрация закрыта', 
@@ -989,9 +972,10 @@
             } catch (error) {
                 console.error("Ошибка изменения статуса регистрации:", error);
                 showGlobalStatus('Ошибка изменения статуса: ' + error.message, 'error');
+                
                 // Возвращаем переключатель в исходное состояние
-                toggle.checked = !registrationEnabled;
-                registrationEnabled = !registrationEnabled;
+                const toggle = document.getElementById('registrationToggle');
+                toggle.checked = registrationEnabled;
             }
         }
 
