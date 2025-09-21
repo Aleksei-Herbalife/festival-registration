@@ -313,7 +313,8 @@
         }
         
         .admin-container.expanded {
-            max-width: 420px;
+            max-width: 95vw;
+            width: 95vw;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
@@ -324,8 +325,16 @@
                 border-radius: 20px;
             }
             .admin-container.expanded {
-                max-width: 800px;
+                max-width: 95vw;
+                width: 95vw;
                 border-radius: 25px;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .admin-container.expanded {
+                max-width: 1400px;
+                width: 1400px;
             }
         }
         
@@ -343,6 +352,85 @@
         .admin-login-section p {
             font-size: 0.85rem;
             margin-bottom: 15px;
+        }
+        
+        /* Кнопки управления регистрациями */
+        .registration-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .registration-info {
+            flex-grow: 1;
+        }
+        
+        .registration-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .registration-details {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-remove:hover {
+            background: #c82333;
+            transform: scale(1.05);
+        }
+        
+        /* Кнопка рандомизации */
+        .randomize-btn {
+            background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .randomize-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(23, 162, 184, 0.3);
+        }
+        
+        /* Список шансов без нумерации */
+        .chances-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .chance-item {
+            padding: 6px 12px;
+            margin: 2px 0;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #4facfe;
+            font-size: 0.9rem;
         }
         
         .admin-tab.active {
@@ -806,6 +894,19 @@
                         <button class="btn btn-danger" onclick="clearAllRegistrations()" style="font-size: 0.9rem; padding: 12px;">
                             🗑️ Сбросить все регистрации
                         </button>
+                        
+                        <!-- Управление отдельными регистрациями -->
+                        <div style="margin-top: 20px;">
+                            <h4 style="margin-bottom: 15px; color: #333;">🗑️ Управление регистрациями</h4>
+                            <div style="margin-bottom: 10px;">
+                                <input type="text" id="registrationSearch" placeholder="🔍 Поиск зарегистрированного участника..." 
+                                       style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 6px; font-size: 0.9rem;"
+                                       oninput="filterRegistrations()">
+                            </div>
+                            <div id="registrationsList" style="max-height: 300px; overflow-y: auto;">
+                                <!-- Список регистраций будет здесь -->
+                            </div>
+                        </div>
                         
                         <div id="adminStats" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem;"></div>
                     </div>
@@ -1605,6 +1706,9 @@
             updateAdminPreview();
         }
 
+        // Секретный ключ для дополнительной безопасности
+        const ADMIN_SECRET = 'festival2025_admin_key';
+
         async function toggleRegistration() {
             try {
                 if (!isAdminAuthenticated) {
@@ -1618,9 +1722,10 @@
                 
                 showGlobalStatus('Обновление настроек...', 'info');
                 
-                // Обновляем локальные настройки
+                // Обновляем локальные настройки с секретным ключом
                 adminSettings.registrationEnabled = newStatus;
                 adminSettings.lastChanged = new Date().toISOString();
+                adminSettings.adminSecret = ADMIN_SECRET; // Добавляем секретный ключ
                 
                 // Попытка сохранить в Firebase с обработкой ошибок прав доступа
                 if (db) {
@@ -1729,21 +1834,44 @@
                 }
             });
             
-            let html = '<h3>Предварительный просмотр лотереи (первые 50 записей):</h3>';
+            let html = '<button class="randomize-btn" onclick="randomizeChancesList()">🎲 Перемешать список</button>';
+            html += '<h3>Предварительный просмотр лотереи:</h3>';
             
             if (lotteryEntries.length === 0) {
                 html += '<div style="text-align: center; color: #666; padding: 20px;">Пока нет зарегистрированных участников</div>';
             } else {
-                lotteryEntries.slice(0, 50).forEach((name, index) => {
-                    html += `<div style="padding: 8px 0; border-bottom: 1px solid #eee;">${index + 1}. ${name}</div>`;
-                });
+                // Проверяем, нужно ли использовать рандомизированный список
+                const displayList = window.randomizedChancesList || lotteryEntries;
                 
-                if (lotteryEntries.length > 50) {
-                    html += `<div style="padding: 8px 0; font-style: italic; color: #666;">... и еще ${lotteryEntries.length - 50} записей</div>`;
-                }
+                html += '<div class="chances-list">';
+                displayList.forEach((name) => {
+                    html += `<div class="chance-item">${name}</div>`;
+                });
+                html += '</div>';
+                
+                html += `<div style="margin-top: 15px; padding: 10px; background: #e3f7ff; border-radius: 5px; color: #0c5460; font-size: 0.9rem;">
+                    📊 Всего записей в лотерее: ${displayList.length}
+                </div>`;
             }
             
             document.getElementById('chancesPreview').innerHTML = html;
+        }
+
+        // Функция рандомизации списка шансов
+        function randomizeChancesList() {
+            const lotteryEntries = [];
+            Object.values(registrationsData).forEach(reg => {
+                for (let i = 0; i < reg.chances; i++) {
+                    lotteryEntries.push(reg.name);
+                }
+            });
+            
+            if (lotteryEntries.length > 0) {
+                // Создаем рандомизированный список и сохраняем глобально
+                window.randomizedChancesList = shuffleArray(lotteryEntries);
+                updateChancesPreview();
+                showGlobalStatus('Список лотереи перемешан!', 'success');
+            }
         }
 
         function updateConsultantsPreview() {
@@ -2156,6 +2284,92 @@
                     firebaseStatusElement.textContent = '✅ Настройки синхронизируются с Firebase';
                     firebaseStatusElement.style.color = '#28a745';
                 }
+            }
+            
+            // Обновляем список регистраций для управления
+            updateRegistrationsList();
+        }
+
+        // Обновление списка регистраций для управления администратором
+        function updateRegistrationsList() {
+            const container = document.getElementById('registrationsList');
+            if (!container) return;
+            
+            const search = document.getElementById('registrationSearch').value.toLowerCase();
+            const registrations = Object.values(registrationsData).filter(reg => 
+                reg.name.toLowerCase().includes(search)
+            );
+            
+            if (registrations.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px; font-style: italic;">Нет зарегистрированных участников</div>';
+                return;
+            }
+            
+            // Сортируем по времени регистрации (новые сверху)
+            registrations.sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt));
+            
+            let html = '';
+            registrations.forEach(reg => {
+                html += `
+                    <div class="registration-item">
+                        <div class="registration-info">
+                            <div class="registration-name">${reg.name}</div>
+                            <div class="registration-details">
+                                ${reg.consultant} • ${reg.chances} шансов • 
+                                ${new Date(reg.registeredAt).toLocaleString('ru-RU')}
+                            </div>
+                        </div>
+                        <button class="btn-small btn-remove" onclick="removeRegistration('${reg.participantId}', '${reg.name}')">
+                            🗑️ Удалить
+                        </button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Фильтрация списка регистраций
+        function filterRegistrations() {
+            updateRegistrationsList();
+        }
+
+        // Удаление конкретной регистрации
+        async function removeRegistration(participantId, participantName) {
+            if (!confirm(`Вы уверены, что хотите удалить регистрацию участника "${participantName}"?`)) {
+                return;
+            }
+            
+            try {
+                showGlobalStatus('Удаление регистрации...', 'info');
+                
+                // Удаляем из Firebase
+                if (db) {
+                    await db.collection('registrations').doc(participantId).delete();
+                }
+                
+                // Удаляем из локальных данных
+                delete registrationsData[participantId];
+                
+                // Находим и удаляем IP-ограничение
+                for (const ip in registeredIPs) {
+                    if (registeredIPs[ip] === participantId) {
+                        delete registeredIPs[ip];
+                        break;
+                    }
+                }
+                
+                // Сбрасываем рандомизированный список
+                window.randomizedChancesList = null;
+                
+                // Обновляем все статистики
+                updateAllStats();
+                
+                showGlobalStatus(`Регистрация "${participantName}" удалена`, 'success');
+                
+            } catch (error) {
+                console.error("Ошибка удаления регистрации:", error);
+                showGlobalStatus(`Ошибка удаления: ${error.message}`, 'error');
             }
         }
 
