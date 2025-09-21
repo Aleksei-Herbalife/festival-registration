@@ -1123,6 +1123,14 @@
             });
             
             updateConsultantsList();
+            updateParticipantCount();
+        }
+
+        function updateParticipantCount() {
+            const participantCountElement = document.getElementById('participantCount');
+            if (participantCountElement) {
+                participantCountElement.textContent = `Участников: ${participantsData.length}`;
+            }
         }
 
         function loadTestData() {
@@ -2556,6 +2564,11 @@
             <div class="step" id="step1">
                 <div class="progress">
                     <div class="progress-bar" style="width: 25%"></div>
+                </div>
+                
+                <div style="text-align: center; margin-bottom: 20px; padding: 15px; background: #e3f7ff; border-radius: 12px;">
+                    <strong>📅 Ежемесячный фестиваль</strong><br>
+                    <span id="participantCount">Участников: 0</span>
                 </div>
                 
                 <h2 style="margin-bottom: 10px;">👤 Ваш консультант</h2>
