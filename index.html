@@ -93,6 +93,32 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Превью для обычных пользователей (отображается ниже админ-панели, всегда видимо если есть регистрации) -->
+            <div id="publicPreview" style="display: none; margin-top: 30px;">
+                <h2>📊 Статистика регистрации</h2>
+                <div id="publicPreviewStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0;"></div>
+                
+                <div class="preview-tabs">
+                    <button class="preview-tab active" data-tab="chances" onclick="switchPublicPreviewTab('chances')">
+                        🎲 Шансы
+                    </button>
+                    <button class="preview-tab" data-tab="consultants" onclick="switchPublicPreviewTab('consultants')">
+                        👥 Консультанты
+                    </button>
+                    <button class="preview-tab" data-tab="weight" onclick="switchPublicPreviewTab('weight')">
+                        ⚖️ Вес
+                    </button>
+                    <button class="preview-tab" data-tab="medals" onclick="switchPublicPreviewTab('medals')">
+                        🏆 Медали
+                    </button>
+                </div>
+
+                <div class="preview-tab-content active" id="publicChancesPreview"></div>
+                <div class="preview-tab-content" id="publicConsultantsPreview"></div>
+                <div class="preview-tab-content" id="publicWeightPreview"></div>
+                <div class="preview-tab-content" id="publicMedalsPreview"></div>
+            </div>
         </div>
 
         <!-- Глобальный статус -->
@@ -120,6 +146,8 @@
         let participantsData = [];
         let consultantsData = {};
         let registrationsData = {};
+        let registeredIPs = {};
+        let userIP = '';
         let selectedConsultant = '';
         let selectedParticipant = null;
         let isFirebaseConnected = false;
@@ -130,9 +158,23 @@
 
         // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
+            getUserIP();
             initializeFirebase();
             setupEventListeners();
         });
+
+        // Получение IP-адреса пользователя
+        async function getUserIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                userIP = data.ip;
+            } catch (error) {
+                console.error('Ошибка получения IP:', error);
+                // Fallback - генерируем уникальный ID браузера
+                userIP = 'browser_' + Math.random().toString(36).substr(2, 9);
+            }
+        }
 
         function initializeFirebase() {
             try {
@@ -242,9 +284,15 @@
             try {
                 const snapshot = await db.collection('registrations').get();
                 registrationsData = {};
+                registeredIPs = {};
                 
                 snapshot.forEach(doc => {
-                    registrationsData[doc.id] = doc.data();
+                    const data = doc.data();
+                    registrationsData[doc.id] = data;
+                    // Сохраняем IP-адреса для проверки
+                    if (data.userIP) {
+                        registeredIPs[data.userIP] = doc.id;
+                    }
                 });
                 
                 updateAllStats();
@@ -512,9 +560,17 @@
             if (!selectedParticipant || !db) return;
             
             try {
-                // Проверяем, не зарегистрирован ли уже
+                // Проверяем, не зарегистрирован ли уже этот участник
                 if (registrationsData[selectedParticipant.id]) {
                     showAlreadyRegistered();
+                    return;
+                }
+                
+                // Проверяем, не регистрировался ли уже с этого IP
+                if (registeredIPs[userIP]) {
+                    const existingParticipantId = registeredIPs[userIP];
+                    const existingParticipant = registrationsData[existingParticipantId];
+                    showGlobalStatus(`С этого устройства уже зарегистрирован участник: ${existingParticipant.name}`, 'error');
                     return;
                 }
                 
@@ -537,6 +593,7 @@
                     chances: selectedParticipant.chances,
                     weight: selectedParticipant.weight || 0,
                     medal: selectedParticipant.medal || 0,
+                    userIP: userIP, // Сохраняем IP-адрес
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
                     registeredAt: new Date().toISOString()
                 };
@@ -546,6 +603,7 @@
                 
                 // Обновляем локальные данные
                 registrationsData[selectedParticipant.id] = registrationData;
+                registeredIPs[userIP] = selectedParticipant.id;
                 
                 // Показываем успешную регистрацию
                 showSuccessfulRegistration();
@@ -606,21 +664,19 @@
             if (isAdminAuthenticated) {
                 updateAdminPreview();
             }
-            // Всегда обновляем публичное превью (оно само решит показываться или нет)
+            // Обновляем публичное превью только если есть регистрации
             updatePublicPreview();
         }
 
         function updatePublicPreview() {
             const publicPreview = document.getElementById('publicPreview');
-            
-            // Показываем превью только если есть зарегистрированные участники
             const registeredCount = Object.keys(registrationsData).length;
             
             if (registeredCount > 0) {
                 publicPreview.style.display = 'block';
                 updatePublicPreviewStats();
                 updatePublicChancesPreview();
-                updatePublicConsultantsPreview();
+                updatePublicConsultantsPreview(); 
                 updatePublicWeightPreview();
                 updatePublicMedalsPreview();
             } else {
@@ -2155,32 +2211,6 @@
                         👥 Зарегистрировать другого участника
                     </button>
                 </div>
-            </div>
-
-            <!-- Превью для обычных пользователей (только если админ авторизован) -->
-            <div id="publicPreview" style="display: none; margin-top: 30px;">
-                <h2>📊 Статистика регистрации</h2>
-                <div id="publicPreviewStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0;"></div>
-                
-                <div class="preview-tabs">
-                    <button class="preview-tab active" data-tab="chances" onclick="switchPublicPreviewTab('chances')">
-                        🎲 Шансы
-                    </button>
-                    <button class="preview-tab" data-tab="consultants" onclick="switchPublicPreviewTab('consultants')">
-                        👥 Консультанты
-                    </button>
-                    <button class="preview-tab" data-tab="weight" onclick="switchPublicPreviewTab('weight')">
-                        ⚖️ Вес
-                    </button>
-                    <button class="preview-tab" data-tab="medals" onclick="switchPublicPreviewTab('medals')">
-                        🏆 Медали
-                    </button>
-                </div>
-
-                <div class="preview-tab-content active" id="publicChancesPreview"></div>
-                <div class="preview-tab-content" id="publicConsultantsPreview"></div>
-                <div class="preview-tab-content" id="publicWeightPreview"></div>
-                <div class="preview-tab-content" id="publicMedalsPreview"></div>
             </div>
 
             <!-- Админ-панель -->
