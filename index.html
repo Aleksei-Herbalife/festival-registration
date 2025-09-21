@@ -2034,7 +2034,506 @@
                         <div style="margin-bottom: 15px;">
                             <div class="consultant-header" onclick="toggleConsultantClients('${consultantId}')">
                                 <span><strong>${data.consultant}</strong> - ${data.totalWeight} кг (${data.registered.length} из ${data.participants.length})</span>
-                                <span id="icon-${consultantId}">▶</span>="location.reload()">
+                                <span id="icon-${consultantId}">▶</span>
+                            </div>
+                            <div class="consultant-content" id="${consultantId}">
+                    `;
+                    
+                    data.participants.forEach(participant => {
+                        const isRegistered = registrationsData[participant.id];
+                        const weight = participant.weight || 0;
+                        html += `
+                            <div style="padding: 3px 0; ${isRegistered ? 'color: #28a745; font-weight: 600;' : 'color: #dc3545;'}">
+                                ${isRegistered ? '✅' : '❌'} ${participant.name} - ${weight} кг
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div></div>';
+                });
+            }
+            
+            const weightPreview = document.getElementById('weightPreview');
+            if (weightPreview) {
+                weightPreview.innerHTML = html;
+            }
+        }
+
+        function updateMedalsPreview() {
+            let html = '<h3>Медалисты (только зарегистрированные):</h3>';
+            
+            const medalCategories = [
+                {min: 5, max: 5, label: 'Медалисты на 5кг'},
+                {min: 10, max: 10, label: 'Медалисты на 10кг'},
+                {min: 15, max: 15, label: 'Медалисты на 15кг'},
+                {min: 20, max: 20, label: 'Медалисты на 20кг'},
+                {min: 25, max: 25, label: 'Медалисты на 25кг'},
+                {min: 30, max: 30, label: 'Медалисты на 30кг'},
+                {min: 31, max: 1000, label: 'Медалисты более 30кг'}
+            ];
+            
+            let hasAnyMedalists = false;
+            
+            medalCategories.forEach(category => {
+                const medalists = Object.values(registrationsData).filter(reg => 
+                    reg.medal >= category.min && reg.medal <= category.max
+                );
+                
+                if (medalists.length > 0) {
+                    hasAnyMedalists = true;
+                    html += `
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-size: 1.1rem; font-weight: bold; color: #4facfe; margin-bottom: 10px; padding: 8px; background: #f0f8ff; border-radius: 5px;">
+                                ${category.label} (${medalists.length} чел.)
+                            </div>
+                    `;
+                    
+                    medalists.forEach((reg, index) => {
+                        html += `<div style="padding: 5px 0; border-bottom: 1px solid #eee;">${index + 1}. ${reg.name} (${reg.consultant}) - ${reg.medal}кг</div>`;
+                    });
+                    
+                    html += '</div>';
+                }
+            });
+            
+            if (!hasAnyMedalists) {
+                html += '<div style="text-align: center; color: #666; padding: 20px;">Нет зарегистрированных медалистов</div>';
+            }
+            
+            const medalsPreview = document.getElementById('medalsPreview');
+            if (medalsPreview) {
+                medalsPreview.innerHTML = html;
+            }
+        }
+
+        window.toggleConsultantClients = function(consultantId) {
+            const content = document.getElementById(consultantId);
+            const icon = document.getElementById('icon-' + consultantId);
+            
+            if (content && icon) {
+                if (content.classList.contains('active')) {
+                    content.classList.remove('active');
+                    icon.textContent = '▶';
+                } else {
+                    content.classList.add('active');
+                    icon.textContent = '▼';
+                }
+            }
+        };
+
+        async function loadParticipantsData() {
+            const fileInput = document.getElementById('dataFileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                showGlobalStatus('Выберите файл для загрузки', 'error');
+                return;
+            }
+            
+            try {
+                showGlobalStatus('Загрузка файла...', 'info');
+                
+                const arrayBuffer = await file.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, {type: 'array'});
+                const targetSheet = "Ответы на форму (1)";
+                
+                if (!workbook.SheetNames.includes(targetSheet)) {
+                    throw new Error(`Лист "${targetSheet}" не найден`);
+                }
+                
+                const worksheet = workbook.Sheets[targetSheet];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { 
+                    header: 1,
+                    defval: '',
+                    blankrows: false
+                });
+                
+                participantsData = [];
+                
+                for (let i = 1; i < jsonData.length; i++) {
+                    const row = jsonData[i];
+                    if (!row || row.length === 0) continue;
+                    
+                    const name = row[1] ? row[1].toString().trim() : '';
+                    const consultant = row[3] ? row[3].toString().trim() : '';
+                    const weight = Number(row[4]) || 0;
+                    const medal = Number(row[5]) || 0;
+                    const chances = Number(row[7]) || 0;
+                    const type = row[8] ? row[8].toString().trim() : '';
+                    
+                    if (name && consultant) {
+                        participantsData.push({
+                            id: `participant_${i}`,
+                            name: name,
+                            consultant: consultant,
+                            type: type,
+                            chances: chances,
+                            weight: weight,
+                            medal: medal
+                        });
+                    }
+                }
+                
+                // Сохраняем в Firebase
+                if (db) {
+                    showGlobalStatus('Сохранение в базу данных...', 'info');
+                    
+                    const batch = db.batch();
+                    
+                    // Очищаем старые данные участников
+                    const oldParticipantsSnapshot = await db.collection('participants').get();
+                    oldParticipantsSnapshot.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    
+                    // ВАЖНО: Очищаем все регистрации (новый фестиваль!)
+                    const oldRegistrationsSnapshot = await db.collection('registrations').get();
+                    oldRegistrationsSnapshot.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    
+                    // Добавляем новые данные участников
+                    participantsData.forEach(participant => {
+                        const docRef = db.collection('participants').doc(participant.id);
+                        batch.set(docRef, participant);
+                    });
+                    
+                    await batch.commit();
+                    
+                    // Очищаем локальные данные регистраций
+                    registrationsData = {};
+                    registeredIPs = {};
+                }
+                
+                organizeParticipantsData();
+                
+                // Сообщение только для администратора
+                showGlobalStatus(`🎉 Новый фестиваль! Загружено ${participantsData.length} участников. Все ограничения сброшены.`, 'success');
+                
+                // Очищаем input
+                fileInput.value = '';
+                
+                // Обновляем все статистики
+                updateAllStats();
+                
+            } catch (error) {
+                console.error("Ошибка загрузки:", error);
+                showGlobalStatus(`Ошибка загрузки: ${error.message}`, 'error');
+            }
+        }
+
+        async function exportRegistrations() {
+            if (Object.keys(registrationsData).length === 0) {
+                showGlobalStatus('Нет зарегистрированных участников для экспорта', 'error');
+                return;
+            }
+            
+            try {
+                const wb = XLSX.utils.book_new();
+                
+                // 1. Зарегистрированные участники
+                const registeredData = [['Имя', 'Консультант', 'Тип', 'Шансы', 'Вес', 'Медаль', 'Время регистрации']];
+                
+                Object.values(registrationsData).forEach(reg => {
+                    registeredData.push([
+                        reg.name,
+                        reg.consultant,
+                        reg.type,
+                        reg.chances,
+                        reg.weight,
+                        reg.medal,
+                        new Date(reg.registeredAt).toLocaleString('ru-RU')
+                    ]);
+                });
+                
+                const registeredWs = XLSX.utils.aoa_to_sheet(registeredData);
+                XLSX.utils.book_append_sheet(wb, registeredWs, 'Зарегистрированные');
+                
+                // 2. Честные шансы лотереи
+                const lotteryData = [['Участник лотереи']];
+                Object.values(registrationsData).forEach(reg => {
+                    for (let i = 0; i < reg.chances; i++) {
+                        lotteryData.push([reg.name]);
+                    }
+                });
+                
+                const lotteryWs = XLSX.utils.aoa_to_sheet(lotteryData);
+                XLSX.utils.book_append_sheet(wb, lotteryWs, 'Честные шансы лотереи');
+                
+                // 3. Клиенты по консультантам
+                const consultantData = [['Консультант', 'Статус', 'Имя', 'Шансы', 'Тип']];
+                
+                Object.keys(consultantsData).sort().forEach(consultant => {
+                    const participants = consultantsData[consultant];
+                    const registeredCount = participants.filter(p => registrationsData[p.id]).length;
+                    
+                    consultantData.push([
+                        `${consultant} - ${registeredCount} из ${participants.length} зарегистрировано`,
+                        '', '', '', ''
+                    ]);
+                    
+                    participants.forEach(participant => {
+                        const isRegistered = registrationsData[participant.id];
+                        consultantData.push([
+                            '',
+                            isRegistered ? '✅ ПРИШЕЛ' : '❌ НЕ ПРИШЕЛ',
+                            participant.name,
+                            participant.chances,
+                            participant.type
+                        ]);
+                    });
+                    
+                    consultantData.push(['', '', '', '', '']); // Пустая строка между консультантами
+                });
+                
+                const consultantWs = XLSX.utils.aoa_to_sheet(consultantData);
+                XLSX.utils.book_append_sheet(wb, consultantWs, 'Клиенты по консультантам');
+
+                // Сохранение файла
+                const fileName = `festival_results_${new Date().toISOString().slice(0, 10)}_${new Date().toTimeString().slice(0, 5).replace(':', '')}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+                
+                showGlobalStatus('Результаты экспортированы!', 'success');
+                
+            } catch (error) {
+                console.error("Ошибка экспорта:", error);
+                showGlobalStatus(`Ошибка экспорта: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearAllRegistrations() {
+            if (!confirm('Вы уверены, что хотите удалить ВСЕ регистрации? Это действие нельзя отменить!')) {
+                return;
+            }
+            
+            try {
+                showGlobalStatus('Удаление регистраций...', 'info');
+                
+                if (db) {
+                    const snapshot = await db.collection('registrations').get();
+                    const batch = db.batch();
+                    
+                    snapshot.forEach(doc => {
+                        batch.delete(doc.ref);
+                    });
+                    
+                    await batch.commit();
+                }
+                
+                registrationsData = {};
+                registeredIPs = {};
+                updateAllStats();
+                
+                showGlobalStatus('Все регистрации удалены', 'success');
+                
+            } catch (error) {
+                console.error("Ошибка удаления:", error);
+                showGlobalStatus(`Ошибка удаления: ${error.message}`, 'error');
+            }
+        }
+
+        async function changeAdminPassword() {
+            const newPasswordInput = document.getElementById('newPasswordInput');
+            const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+            
+            if (!newPasswordInput || !confirmPasswordInput) return;
+            
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            
+            if (!newPassword || newPassword.length < 4) {
+                showGlobalStatus('Пароль должен содержать минимум 4 символа', 'error');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showGlobalStatus('Пароли не совпадают', 'error');
+                return;
+            }
+            
+            try {
+                adminSettings.password = newPassword;
+                adminSettings.lastChanged = new Date().toISOString();
+                
+                if (db) {
+                    await db.collection('settings').doc('admin').set(adminSettings, { merge: true });
+                }
+                
+                newPasswordInput.value = '';
+                confirmPasswordInput.value = '';
+                
+                const currentPasswordElement = document.getElementById('currentPassword');
+                if (currentPasswordElement) {
+                    currentPasswordElement.textContent = newPassword;
+                }
+                
+                showGlobalStatus('Пароль администратора изменен', 'success');
+                
+            } catch (error) {
+                console.error("Ошибка смены пароля:", error);
+                showGlobalStatus('Ошибка смены пароля: ' + error.message, 'error');
+            }
+        }
+
+        function updateAdminStats() {
+            const totalParticipants = participantsData.length;
+            const registeredCount = Object.keys(registrationsData).length;
+            const totalChances = participantsData.reduce((sum, p) => sum + p.chances, 0);
+            const registeredChances = Object.values(registrationsData).reduce((sum, r) => sum + r.chances, 0);
+            
+            const statsElement = document.getElementById('adminStats');
+            if (statsElement) {
+                statsElement.innerHTML = `
+                    <strong>📊 Статистика регистрации:</strong><br>
+                    👥 Зарегистрировано: ${registeredCount} из ${totalParticipants} 
+                    (${totalParticipants > 0 ? Math.round(registeredCount / totalParticipants * 100) : 0}%)<br>
+                    🎲 Шансы: ${registeredChances} из ${totalChances}<br>
+                    📈 Консультантов: ${Object.keys(consultantsData).length}<br>
+                    🔥 Статус Firebase: ${isFirebaseConnected ? '✅ Подключен' : '❌ Не подключен'}
+                `;
+            }
+            
+            // Обновляем статус Firebase для переключателя
+            const firebaseStatusElement = document.getElementById('firebaseStatus');
+            if (firebaseStatusElement) {
+                if (adminSettings.localMode) {
+                    firebaseStatusElement.textContent = '⚠️ Локальный режим (настройки не синхронизируются)';
+                    firebaseStatusElement.style.color = '#856404';
+                } else {
+                    firebaseStatusElement.textContent = '✅ Настройки синхронизируются с Firebase';
+                    firebaseStatusElement.style.color = '#28a745';
+                }
+            }
+            
+            // Обновляем список регистраций для управления
+            updateRegistrationsList();
+        }
+
+        // Обновление списка регистраций для управления администратором
+        function updateRegistrationsList() {
+            const container = document.getElementById('registrationsList');
+            if (!container) return;
+            
+            const searchInput = document.getElementById('registrationSearch');
+            const search = searchInput ? searchInput.value.toLowerCase() : '';
+            
+            const registrations = Object.values(registrationsData).filter(reg => 
+                reg.name.toLowerCase().includes(search)
+            );
+            
+            if (registrations.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #666; padding: 20px; font-style: italic;">Нет зарегистрированных участников</div>';
+                return;
+            }
+            
+            // Сортируем по времени регистрации (новые сверху)
+            registrations.sort((a, b) => new Date(b.registeredAt) - new Date(a.registeredAt));
+            
+            let html = '';
+            registrations.forEach(reg => {
+                html += `
+                    <div class="registration-item">
+                        <div class="registration-info">
+                            <div class="registration-name">${reg.name}</div>
+                            <div class="registration-details">
+                                ${reg.consultant} • ${reg.chances} шансов • 
+                                ${new Date(reg.registeredAt).toLocaleString('ru-RU')}
+                            </div>
+                        </div>
+                        <button class="btn-small btn-remove" onclick="window.removeRegistration('${reg.participantId}', '${reg.name}')">
+                            🗑️ Удалить
+                        </button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Фильтрация списка регистраций
+        function filterRegistrations() {
+            updateRegistrationsList();
+        }
+
+        // Делаем функции глобально доступными для HTML onclick
+        window.removeRegistration = async function(participantId, participantName) {
+            if (!confirm(`Вы уверены, что хотите удалить регистрацию участника "${participantName}"?`)) {
+                return;
+            }
+            
+            try {
+                showGlobalStatus('Удаление регистрации...', 'info');
+                
+                // Удаляем из Firebase
+                if (db) {
+                    await db.collection('registrations').doc(participantId).delete();
+                }
+                
+                // Удаляем из локальных данных
+                delete registrationsData[participantId];
+                
+                // Находим и удаляем IP-ограничение
+                for (const ip in registeredIPs) {
+                    if (registeredIPs[ip] === participantId) {
+                        delete registeredIPs[ip];
+                        break;
+                    }
+                }
+                
+                // Сбрасываем рандомизированный список
+                window.randomizedChancesList = null;
+                
+                // Обновляем все статистики
+                updateAllStats();
+                
+                showGlobalStatus(`Регистрация "${participantName}" удалена`, 'success');
+                
+            } catch (error) {
+                console.error("Ошибка удаления регистрации:", error);
+                showGlobalStatus(`Ошибка удаления: ${error.message}`, 'error');
+            }
+        };
+
+        function showError(message) {
+            const errorMessageElement = document.getElementById('errorMessage');
+            if (errorMessageElement) {
+                errorMessageElement.textContent = message;
+            }
+            showStep('errorStep');
+        }
+
+        function showGlobalStatus(message, type = 'info') {
+            const statusElement = document.getElementById('globalStatus');
+            if (statusElement) {
+                statusElement.textContent = message;
+                statusElement.className = `status ${type}`;
+                statusElement.style.display = 'block';
+                
+                setTimeout(() => {
+                    statusElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Периодическое обновление данных
+        setInterval(async () => {
+            if (isFirebaseConnected && db) {
+                try {
+                    await loadRegistrationsFromFirebase();
+                    await loadAdminSettings();
+                    
+                    // Если регистрация была закрыта админом, переключаем на соответствующий экран
+                    if (!registrationEnabled && !document.getElementById('registrationClosedStep').classList.contains('active') && !isAdminAuthenticated) {
+                        showStep('registrationClosedStep');
+                    }
+                } catch (error) {
+                    console.error("Ошибка автообновления:", error);
+                }
+            }
+        }, 10000); // Обновление каждые 10 секунд
+    </script>
+</body>
+</html>="location.reload()">
                         🔄 Попробовать снова
                     </button>
                 </div>
