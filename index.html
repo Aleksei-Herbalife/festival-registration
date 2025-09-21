@@ -411,37 +411,13 @@ function filterConsultants() {
             border-radius: 6px;
             cursor: pointer;
             font-size: 0.9rem;
-            margin-right: 10px;
+            margin-bottom: 15px;
             transition: all 0.3s ease;
         }
         
         .randomize-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 3px 10px rgba(23, 162, 184, 0.3);
-        }
-        
-        /* Кнопка копирования */
-        .copy-btn {
-            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.3s ease;
-        }
-        
-        .copy-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 10px rgba(111, 66, 193, 0.3);
-        }
-        
-        .copy-btn:disabled {
-            background: #6c757d;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
         }
         
         /* Список шансов без нумерации */
@@ -1863,15 +1839,12 @@ function filterConsultants() {
             } else {
                 html += '<div style="margin-bottom: 15px; text-align: center;">';
                 html += '<button class="randomize-btn" onclick="window.randomizeChancesList()">🎲 Перемешать список</button>';
-                
-                // Проверяем, есть ли данные для копирования
-                const displayList = window.randomizedChancesList || lotteryEntries;
-                const hasDataToCopy = displayList.length > 0;
-                
-                html += `<button class="copy-btn" onclick="window.copyChancesToClipboard()" ${hasDataToCopy ? '' : 'disabled'}>📋 Копировать</button>`;
                 html += '</div>';
                 
                 html += '<h3>Предварительный просмотр лотереи:</h3>';
+                
+                // Проверяем, нужно ли использовать рандомизированный список
+                const displayList = window.randomizedChancesList || lotteryEntries;
                 
                 html += '<div class="chances-list">';
                 displayList.forEach((name) => {
@@ -2387,89 +2360,7 @@ function filterConsultants() {
             updateRegistrationsList();
         }
 
-        // Функция копирования списка шансов в буфер обмена
-        window.copyChancesToClipboard = async function() {
-            try {
-                const lotteryEntries = [];
-                Object.values(registrationsData).forEach(reg => {
-                    for (let i = 0; i < reg.chances; i++) {
-                        lotteryEntries.push(reg.name);
-                    }
-                });
-                
-                // Используем рандомизированный список, если он есть, иначе исходный
-                const displayList = window.randomizedChancesList || lotteryEntries;
-                
-                if (displayList.length === 0) {
-                    showGlobalStatus('Нет участников для копирования', 'warning');
-                    return;
-                }
-                
-                // Формируем текст для копирования
-                const textToCopy = displayList.join('\n');
-                
-                // Копируем в буфер обмена
-                if (navigator.clipboard && window.isSecureContext) {
-                    // Современный способ для HTTPS
-                    await navigator.clipboard.writeText(textToCopy);
-                } else {
-                    // Fallback для HTTP или старых браузеров
-                    const textArea = document.createElement('textarea');
-                    textArea.value = textToCopy;
-                    textArea.style.position = 'fixed';
-                    textArea.style.left = '-999999px';
-                    textArea.style.top = '-999999px';
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    
-                    try {
-                        document.execCommand('copy');
-                        textArea.remove();
-                    } catch (err) {
-                        textArea.remove();
-                        throw new Error('Не удалось скопировать');
-                    }
-                }
-                
-                const listType = window.randomizedChancesList ? 'перемешанный' : 'исходный';
-                showGlobalStatus(`📋 Скопировано ${displayList.length} записей (${listType} список)`, 'success');
-                console.log('Список скопирован в буфер:', displayList.slice(0, 5), '...');
-                
-            } catch (error) {
-                console.error('Ошибка копирования:', error);
-                showGlobalStatus('Ошибка копирования в буфер обмена', 'error');
-                
-                // Показываем альтернативный способ
-                const displayList = window.randomizedChancesList || lotteryEntries;
-                const textToCopy = displayList.join('\n');
-                
-                // Создаем модальное окно с текстом для ручного копирования
-                const modal = document.createElement('div');
-                modal.style.cssText = `
-                    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-                    background: rgba(0,0,0,0.5); z-index: 9999; display: flex; 
-                    align-items: center; justify-content: center;
-                `;
-                
-                modal.innerHTML = `
-                    <div style="background: white; padding: 20px; border-radius: 10px; max-width: 90%; max-height: 90%; overflow: auto;">
-                        <h3>Скопируйте текст вручную:</h3>
-                        <textarea readonly style="width: 100%; height: 300px; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">${textToCopy}</textarea>
-                        <button onclick="this.parentElement.parentElement.remove()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Закрыть</button>
-                    </div>
-                `;
-                
-                document.body.appendChild(modal);
-                
-                // Выделяем текст в textarea
-                setTimeout(() => {
-                    const textarea = modal.querySelector('textarea');
-                    textarea.focus();
-                    textarea.select();
-                }, 100);
-            }
-        };
+        // Делаем функции глобально доступными для HTML onclick
         window.removeRegistration = async function(participantId, participantName) {
             if (!confirm(`Вы уверены, что хотите удалить регистрацию участника "${participantName}"?`)) {
                 return;
