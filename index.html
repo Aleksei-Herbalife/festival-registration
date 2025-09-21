@@ -92,32 +92,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Публичное превью - видно только админам после авторизации -->
-                <div id="adminPublicPreview" style="display: none; margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">
-                    <h2>📊 Публичная статистика регистрации</h2>
-                    <div id="adminPublicPreviewStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0;"></div>
-                    
-                    <div class="preview-tabs">
-                        <button class="preview-tab active" data-tab="chances" onclick="switchAdminPublicPreviewTab('chances')">
-                            🎲 Шансы
-                        </button>
-                        <button class="preview-tab" data-tab="consultants" onclick="switchAdminPublicPreviewTab('consultants')">
-                            👥 Консультанты
-                        </button>
-                        <button class="preview-tab" data-tab="weight" onclick="switchAdminPublicPreviewTab('weight')">
-                            ⚖️ Вес
-                        </button>
-                        <button class="preview-tab" data-tab="medals" onclick="switchAdminPublicPreviewTab('medals')">
-                            🏆 Медали
-                        </button>
-                    </div>
-
-                    <div class="preview-tab-content active" id="adminPublicChancesPreview"></div>
-                    <div class="preview-tab-content" id="adminPublicConsultantsPreview"></div>
-                    <div class="preview-tab-content" id="adminPublicWeightPreview"></div>
-                    <div class="preview-tab-content" id="adminPublicMedalsPreview"></div>
-                </div>
             </div>
 
             <!-- Превью для обычных пользователей (ПОЛНОСТЬЮ СКРЫТО) -->
@@ -666,7 +640,7 @@
             }
             if (isAdminAuthenticated) {
                 updateAdminPreview();
-                updateAdminPublicPreview(); // Обновляем публичное превью для админов
+                updateAdminOnlyPreview(); // Обновляем превью под заголовком "Фестиваль"
             }
         }
 
