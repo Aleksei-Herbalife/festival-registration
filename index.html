@@ -606,6 +606,208 @@
             if (isAdminAuthenticated) {
                 updateAdminPreview();
             }
+            // Всегда обновляем публичное превью (оно само решит показываться или нет)
+            updatePublicPreview();
+        }
+
+        function updatePublicPreview() {
+            const publicPreview = document.getElementById('publicPreview');
+            
+            // Показываем превью только если есть зарегистрированные участники
+            const registeredCount = Object.keys(registrationsData).length;
+            
+            if (registeredCount > 0) {
+                publicPreview.style.display = 'block';
+                updatePublicPreviewStats();
+                updatePublicChancesPreview();
+                updatePublicConsultantsPreview();
+                updatePublicWeightPreview();
+                updatePublicMedalsPreview();
+            } else {
+                publicPreview.style.display = 'none';
+            }
+        }
+
+        function switchPublicPreviewTab(tabName) {
+            document.querySelectorAll('#publicPreview .preview-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('#publicPreview .preview-tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            document.querySelector(`#publicPreview [data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById('public' + tabName.charAt(0).toUpperCase() + tabName.slice(1) + 'Preview').classList.add('active');
+        }
+
+        function updatePublicPreviewStats() {
+            const registeredCount = Object.keys(registrationsData).length;
+            const totalChances = Object.values(registrationsData).reduce((sum, r) => sum + r.chances, 0);
+            const totalWeight = Object.values(registrationsData).reduce((sum, r) => sum + (r.weight || 0), 0);
+            
+            document.getElementById('publicPreviewStats').innerHTML = `
+                <div style="text-align: center; padding: 10px; background: #e3f7ff; border-radius: 8px;">
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #4facfe;">${registeredCount}</div>
+                    <div style="font-size: 0.8rem; color: #666;">Зарегистрировано</div>
+                </div>
+                <div style="text-align: center; padding: 10px; background: #e8f5e8; border-radius: 8px;">
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #28a745;">${totalChances}</div>
+                    <div style="font-size: 0.8rem; color: #666;">Честных шансов</div>
+                </div>
+                <div style="text-align: center; padding: 10px; background: #fff3cd; border-radius: 8px;">
+                    <div style="font-size: 1.2rem; font-weight: bold; color: #856404;">${totalWeight}</div>
+                    <div style="font-size: 0.8rem; color: #666;">Кг зарегистрированных</div>
+                </div>
+            `;
+        }
+
+        function updatePublicChancesPreview() {
+            const lotteryEntries = [];
+            Object.values(registrationsData).forEach(reg => {
+                for (let i = 0; i < reg.chances; i++) {
+                    lotteryEntries.push(reg.name);
+                }
+            });
+            
+            let html = '<h3>Предварительный просмотр лотереи (первые 50 записей):</h3>';
+            
+            if (lotteryEntries.length === 0) {
+                html += '<div style="text-align: center; color: #666; padding: 20px;">Пока нет зарегистрированных участников</div>';
+            } else {
+                lotteryEntries.slice(0, 50).forEach((name, index) => {
+                    html += `<div style="padding: 8px 0; border-bottom: 1px solid #eee;">${index + 1}. ${name}</div>`;
+                });
+                
+                if (lotteryEntries.length > 50) {
+                    html += `<div style="padding: 8px 0; font-style: italic; color: #666;">... и еще ${lotteryEntries.length - 50} записей</div>`;
+                }
+            }
+            
+            document.getElementById('publicChancesPreview').innerHTML = html;
+        }
+
+        function updatePublicConsultantsPreview() {
+            let html = '<h3>Клиенты по консультантам (зарегистрированные):</h3>';
+            
+            const consultantsByClients = Object.keys(consultantsData).map(consultant => {
+                const participants = consultantsData[consultant];
+                const registered = participants.filter(p => registrationsData[p.id]);
+                return { consultant, participants, registered };
+            }).sort((a, b) => b.registered.length - a.registered.length);
+            
+            if (consultantsByClients.length === 0) {
+                html += '<div style="text-align: center; color: #666; padding: 20px;">Нет данных консультантов</div>';
+            } else {
+                consultantsByClients.forEach((data, index) => {
+                    const consultantId = `public-consultant-${index}`;
+                    html += `
+                        <div style="margin-bottom: 15px;">
+                            <div class="consultant-header" onclick="toggleConsultantClients('${consultantId}')">
+                                <span><strong>${data.consultant}</strong> - ${data.registered.length} из ${data.participants.length} зарегистрировано</span>
+                                <span id="icon-${consultantId}">▶</span>
+                            </div>
+                            <div class="consultant-content" id="${consultantId}">
+                    `;
+                    
+                    data.participants.forEach(participant => {
+                        const isRegistered = registrationsData[participant.id];
+                        html += `
+                            <div style="padding: 3px 0; ${isRegistered ? 'color: #28a745; font-weight: 600;' : 'color: #dc3545;'}">
+                                ${isRegistered ? '✅' : '❌'} ${participant.name}
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div></div>';
+                });
+            }
+            
+            document.getElementById('publicConsultantsPreview').innerHTML = html;
+        }
+
+        function updatePublicWeightPreview() {
+            let html = '<h3>Кг по консультантам (зарегистрированные):</h3>';
+            
+            const consultantsByWeight = Object.keys(consultantsData).map(consultant => {
+                const participants = consultantsData[consultant];
+                const registered = participants.filter(p => registrationsData[p.id]);
+                const totalWeight = registered.reduce((sum, p) => sum + (p.weight || 0), 0);
+                return { consultant, participants, registered, totalWeight };
+            }).sort((a, b) => b.totalWeight - a.totalWeight);
+            
+            if (consultantsByWeight.length === 0) {
+                html += '<div style="text-align: center; color: #666; padding: 20px;">Нет данных по весу</div>';
+            } else {
+                consultantsByWeight.forEach((data, index) => {
+                    const consultantId = `public-weight-consultant-${index}`;
+                    html += `
+                        <div style="margin-bottom: 15px;">
+                            <div class="consultant-header" onclick="toggleConsultantClients('${consultantId}')">
+                                <span><strong>${data.consultant}</strong> - ${data.totalWeight} кг (${data.registered.length} из ${data.participants.length})</span>
+                                <span id="icon-${consultantId}">▶</span>
+                            </div>
+                            <div class="consultant-content" id="${consultantId}">
+                    `;
+                    
+                    data.participants.forEach(participant => {
+                        const isRegistered = registrationsData[participant.id];
+                        const weight = participant.weight || 0;
+                        html += `
+                            <div style="padding: 3px 0; ${isRegistered ? 'color: #28a745; font-weight: 600;' : 'color: #dc3545;'}">
+                                ${isRegistered ? '✅' : '❌'} ${participant.name} - ${weight} кг
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div></div>';
+                });
+            }
+            
+            document.getElementById('publicWeightPreview').innerHTML = html;
+        }
+
+        function updatePublicMedalsPreview() {
+            let html = '<h3>Медалисты (только зарегистрированные):</h3>';
+            
+            const medalCategories = [
+                {min: 5, max: 5, label: 'Медалисты на 5кг'},
+                {min: 10, max: 10, label: 'Медалисты на 10кг'},
+                {min: 15, max: 15, label: 'Медалисты на 15кг'},
+                {min: 20, max: 20, label: 'Медалисты на 20кг'},
+                {min: 25, max: 25, label: 'Медалисты на 25кг'},
+                {min: 30, max: 30, label: 'Медалисты на 30кг'},
+                {min: 31, max: 1000, label: 'Медалисты более 30кг'}
+            ];
+            
+            let hasAnyMedalists = false;
+            
+            medalCategories.forEach(category => {
+                const medalists = Object.values(registrationsData).filter(reg => 
+                    reg.medal >= category.min && reg.medal <= category.max
+                );
+                
+                if (medalists.length > 0) {
+                    hasAnyMedalists = true;
+                    html += `
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-size: 1.1rem; font-weight: bold; color: #4facfe; margin-bottom: 10px; padding: 8px; background: #f0f8ff; border-radius: 5px;">
+                                ${category.label} (${medalists.length} чел.)
+                            </div>
+                    `;
+                    
+                    medalists.forEach((reg, index) => {
+                        html += `<div style="padding: 5px 0; border-bottom: 1px solid #eee;">${index + 1}. ${reg.name} (${reg.consultant}) - ${reg.medal}кг</div>`;
+                    });
+                    
+                    html += '</div>';
+                }
+            });
+            
+            if (!hasAnyMedalists) {
+                html += '<div style="text-align: center; color: #666; padding: 20px;">Нет зарегистрированных медалистов</div>';
+            }
+            
+            document.getElementById('publicMedalsPreview').innerHTML = html;
         }
 
         function updateAdminStats() {
@@ -704,6 +906,11 @@
         }
 
         async function toggleRegistration() {
+            if (!isAdminAuthenticated) {
+                showGlobalStatus('Необходима авторизация администратора', 'error');
+                return;
+            }
+            
             const toggle = document.getElementById('registrationToggle');
             registrationEnabled = toggle.checked;
             
@@ -716,6 +923,8 @@
                 }
                 
                 updateRegistrationStatusText();
+                updatePublicPreview(); // Обновляем превью для обычных пользователей
+                
                 showGlobalStatus(
                     registrationEnabled ? 'Регистрация открыта' : 'Регистрация закрыта', 
                     registrationEnabled ? 'success' : 'warning'
@@ -726,6 +935,7 @@
                 showGlobalStatus('Ошибка изменения статуса: ' + error.message, 'error');
                 // Возвращаем переключатель в исходное состояние
                 toggle.checked = !registrationEnabled;
+                registrationEnabled = !registrationEnabled;
             }
         }
 
@@ -1945,6 +2155,32 @@
                         👥 Зарегистрировать другого участника
                     </button>
                 </div>
+            </div>
+
+            <!-- Превью для обычных пользователей (только если админ авторизован) -->
+            <div id="publicPreview" style="display: none; margin-top: 30px;">
+                <h2>📊 Статистика регистрации</h2>
+                <div id="publicPreviewStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0;"></div>
+                
+                <div class="preview-tabs">
+                    <button class="preview-tab active" data-tab="chances" onclick="switchPublicPreviewTab('chances')">
+                        🎲 Шансы
+                    </button>
+                    <button class="preview-tab" data-tab="consultants" onclick="switchPublicPreviewTab('consultants')">
+                        👥 Консультанты
+                    </button>
+                    <button class="preview-tab" data-tab="weight" onclick="switchPublicPreviewTab('weight')">
+                        ⚖️ Вес
+                    </button>
+                    <button class="preview-tab" data-tab="medals" onclick="switchPublicPreviewTab('medals')">
+                        🏆 Медали
+                    </button>
+                </div>
+
+                <div class="preview-tab-content active" id="publicChancesPreview"></div>
+                <div class="preview-tab-content" id="publicConsultantsPreview"></div>
+                <div class="preview-tab-content" id="publicWeightPreview"></div>
+                <div class="preview-tab-content" id="publicMedalsPreview"></div>
             </div>
 
             <!-- Админ-панель -->
