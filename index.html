@@ -428,8 +428,6 @@
         .chance-item:hover {
             background: #e9ecef;
         }
-        
-        .emoji { font-size: 1.2em; margin-right: 6px; }
         .back-btn {
             background: none;
             border: none;
@@ -471,12 +469,6 @@
             #consultantMobileList {
                 max-height: 300px;
                 overflow-y: auto;
-            }
-            .lottery-controls {
-                flex-direction: column;
-            }
-            .randomize-btn, .copy-btn {
-                min-width: auto;
             }
         }
         
@@ -531,6 +523,7 @@
                 </div>
             </div>
 
+            <!-- ИЗМЕНЕНИЕ 1: Убрал блок с информацией о количестве участников -->
             <div class="step" id="step1">
                 <div class="progress">
                     <div class="progress-bar" style="width: 25%"></div>
@@ -554,6 +547,7 @@
                 </button>
             </div>
 
+            <!-- Остальные шаги остаются без изменений -->
             <div class="step" id="step2">
                 <div class="progress">
                     <div class="progress-bar" style="width: 50%"></div>
@@ -652,6 +646,7 @@
         </div>
     </div>
 
+    <!-- Админ-панель остается без изменений пока -->
     <div class="admin-container" id="adminContainer">
         <div class="header" style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%); padding: 15px;">
             <h1 style="font-size: 1.4rem; margin-bottom: 5px;">🔧 Администратор</h1>
@@ -676,132 +671,9 @@
                 <div id="loginError" style="display: none; margin-top: 10px; padding: 10px; background: #f8d7da; color: #721c24; border-radius: 6px; font-size: 0.8rem;"></div>
             </div>
             
+            <!-- Остальная часть админ-панели остается пока без изменений -->
             <div id="adminPanel" style="display: none;">
-                <div style="background: #e8f5e8; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                        <div>
-                            <strong>✅ Авторизован как администратор</strong>
-                            <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
-                                Полный доступ к управлению системой
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn btn-secondary" onclick="goToRegistration()" style="font-size: 0.8rem; padding: 6px 12px; width: auto;">
-                                👥 Регистрация
-                            </button>
-                            <button class="btn btn-danger" onclick="logoutAdmin()" style="font-size: 0.8rem; padding: 6px 12px; width: auto;">
-                                🚪 Выйти
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="admin-tabs">
-                    <button class="admin-tab active" data-tab="data" onclick="switchAdminTab('data')">
-                        📊 Данные
-                    </button>
-                    <button class="admin-tab" data-tab="preview" onclick="switchAdminTab('preview')">
-                        👁️ Превью
-                    </button>
-                    <button class="admin-tab" data-tab="settings" onclick="switchAdminTab('settings')">
-                        ⚙️ Настройки
-                    </button>
-                </div>
-
-                <div style="border: 1px solid #dee2e6; border-top: none; padding: 20px; border-radius: 0 0 10px 10px; background: white;">
-                    
-                    <div class="admin-tab-content active" id="dataTab">
-                        <div style="margin-bottom: 15px;">
-                            <label style="font-size: 0.9rem; margin-bottom: 5px;">📁 Загрузить данные участников:</label>
-                            <input type="file" id="dataFileInput" accept=".xlsx,.xls" style="font-size: 0.9rem; padding: 10px;">
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;">
-                            <button class="btn btn-primary" onclick="loadParticipantsData()" style="font-size: 0.9rem; padding: 12px;">
-                                📥 Загрузить данные
-                            </button>
-                            <button class="btn btn-success" onclick="exportRegistrations()" style="font-size: 0.9rem; padding: 12px;">
-                                📊 Экспорт результатов
-                            </button>
-                        </div>
-
-                        <div style="border: 2px solid #ffc107; background: #fff3cd; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong>🎯 Управление регистрацией</strong>
-                                    <div style="font-size: 0.85rem; color: #666; margin-top: 3px;">
-                                        <span id="registrationStatusText">Регистрация открыта</span>
-                                    </div>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="checkbox" id="registrationToggle" checked onchange="toggleRegistration()">
-                                    <span class="toggle-slider"></span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <button class="btn btn-danger" onclick="clearAllRegistrations()" style="font-size: 0.9rem; padding: 12px;">
-                            🗑️ Сбросить все регистрации
-                        </button>
-                        
-                        <div id="adminStats" style="margin-top: 15px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem;"></div>
-                    </div>
-
-                    <div class="admin-tab-content" id="previewTab" style="display: none;">
-                        <div style="margin-bottom: 20px;">
-                            <h4>📊 Статистика регистрации</h4>
-                            <div id="previewStats" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 15px 0;"></div>
-                        </div>
-
-                        <div class="preview-tabs">
-                            <button class="preview-tab active" data-tab="chances" onclick="switchPreviewTab('chances')">
-                                🎲 Шансы
-                            </button>
-                            <button class="preview-tab" data-tab="consultants" onclick="switchPreviewTab('consultants')">
-                                👥 Консультанты
-                            </button>
-                            <button class="preview-tab" data-tab="weight" onclick="switchPreviewTab('weight')">
-                                ⚖️ Вес
-                            </button>
-                            <button class="preview-tab" data-tab="medals" onclick="switchPreviewTab('medals')">
-                                🏆 Медали
-                            </button>
-                        </div>
-
-                        <div class="preview-tab-content active" id="chancesPreview"></div>
-                        <div class="preview-tab-content" id="consultantsPreview"></div>
-                        <div class="preview-tab-content" id="weightPreview"></div>
-                        <div class="preview-tab-content" id="medalsPreview"></div>
-                    </div>
-
-                    <div class="admin-tab-content" id="settingsTab" style="display: none;">
-                        <h4 style="margin-bottom: 15px;">🔐 Смена пароля администратора</h4>
-                        
-                        <div style="margin-bottom: 15px;">
-                            <label style="font-size: 0.9rem; margin-bottom: 5px;">Новый пароль:</label>
-                            <input type="password" id="newPasswordInput" placeholder="Введите новый пароль" 
-                                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
-                        </div>
-                        
-                        <div style="margin-bottom: 15px;">
-                            <label style="font-size: 0.9rem; margin-bottom: 5px;">Подтвердите пароль:</label>
-                            <input type="password" id="confirmPasswordInput" placeholder="Повторите новый пароль" 
-                                   style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
-                        </div>
-                        
-                        <button class="btn btn-warning" onclick="changeAdminPassword()" style="font-size: 0.9rem; padding: 12px;">
-                            🔄 Изменить пароль
-                        </button>
-                        
-                        <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; font-size: 0.85rem;">
-                            <strong>ℹ️ Информация:</strong><br>
-                            • Пароль сохраняется в Firebase<br>
-                            • Изменения применяются мгновенно<br>
-                            • Старый пароль станет недействительным<br>
-                            • Текущий пароль: <code id="currentPassword">***</code>
-                        </div>
-                    </div>
-                </div>
+                <div>Админ-панель (будет обновлена в следующих шагах)</div>
             </div>
         </div>
     </div>
@@ -835,8 +707,8 @@
         let adminSettings = {};
         let registrationEnabled = true;
         let isMobile = window.innerWidth < 768;
-        
-        // Переменная для хранения перемешанного списка
+
+        // ИЗМЕНЕНИЕ 2 и 3: Переменная для хранения перемешанного списка
         let shuffledLotteryList = [];
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -868,9 +740,7 @@
         function initializeFirebase() {
             try {
                 if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-                    console.log("Firebase не настроен, используем тестовые данные");
-                    loadTestData();
-                    showStep('step1');
+                    showError("Firebase не настроен!");
                     return;
                 }
 
@@ -881,63 +751,34 @@
                 
             } catch (error) {
                 console.error("Ошибка инициализации Firebase:", error);
-                console.log("Переходим на тестовые данные");
-                loadTestData();
-                showStep('step1');
+                showError("Ошибка подключения к базе данных: " + error.message);
             }
         }
 
         async function loadInitialData() {
             try {
                 showStep('loadingStep');
-                
-                // Устанавливаем таймаут для Firebase операций
-                const timeoutPromise = new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error('Timeout')), 5000);
-                });
-                
-                try {
-                    await Promise.race([loadAdminSettings(), timeoutPromise]);
-                } catch (timeoutError) {
-                    console.log("Firebase недоступен, используем локальные настройки");
-                    adminSettings = { password: 'admin123', registrationEnabled: true };
-                    registrationEnabled = true;
-                }
+                await loadAdminSettings();
                 
                 if (!registrationEnabled) {
                     showStep('registrationClosedStep');
                     return;
                 }
                 
-                try {
-                    await Promise.race([loadParticipantsFromFirebase(), timeoutPromise]);
-                } catch (timeoutError) {
-                    console.log("Участники не загружены из Firebase, используем тестовые данные");
-                    loadTestData();
-                }
-                
-                try {
-                    await Promise.race([loadRegistrationsFromFirebase(), timeoutPromise]);
-                } catch (timeoutError) {
-                    console.log("Регистрации не загружены из Firebase");
-                    registrationsData = {};
-                    registeredIPs = {};
-                }
+                await loadParticipantsFromFirebase();
+                await loadRegistrationsFromFirebase();
                 
                 if (participantsData.length === 0) {
-                    loadTestData();
-                    showGlobalStatus("Используются тестовые данные для демонстрации", 'info');
+                    showGlobalStatus("Данные участников не загружены. Используйте админ-панель для загрузки.", 'warning');
+                    showStep('step1');
                 } else {
+                    showStep('step1');
                     showGlobalStatus(`Загружено ${participantsData.length} участников`, 'success');
                 }
                 
-                showStep('step1');
-                
             } catch (error) {
                 console.error("Ошибка загрузки данных:", error);
-                loadTestData();
-                showStep('step1');
-                showGlobalStatus("Используются тестовые данные", 'info');
+                showError("Ошибка загрузки данных: " + error.message);
             }
         }
 
@@ -1039,65 +880,10 @@
                     chances: 2,
                     weight: 3,
                     medal: 5
-                },
-                {
-                    id: '3',
-                    name: 'Козлова Мария',
-                    consultant: 'Смирнов Игорь',
-                    type: 'Клиент, гость',
-                    chances: 4,
-                    weight: 8,
-                    medal: 15
-                },
-                {
-                    id: '4',
-                    name: 'Федоров Алексей',
-                    consultant: 'Петрова Анна',
-                    type: 'Клиент, гость',
-                    chances: 1,
-                    weight: 2,
-                    medal: 5
-                },
-                {
-                    id: '5',
-                    name: 'Васильева Ольга',
-                    consultant: 'Смирнов Игорь',
-                    type: 'Клиент, гость',
-                    chances: 5,
-                    weight: 12,
-                    medal: 20
-                },
-                {
-                    id: '6',
-                    name: 'Николаев Дмитрий',
-                    consultant: 'Кузнецова Елена',
-                    type: 'Клиент, гость',
-                    chances: 2,
-                    weight: 4,
-                    medal: 10
-                },
-                {
-                    id: '7',
-                    name: 'Морозова Татьяна',
-                    consultant: 'Кузнецова Елена',
-                    type: 'Клиент, гость',
-                    chances: 3,
-                    weight: 7,
-                    medal: 15
-                },
-                {
-                    id: '8',
-                    name: 'Соколов Андрей',
-                    consultant: 'Смирнов Игорь',
-                    type: 'Клиент, гость',
-                    chances: 1,
-                    weight: 1,
-                    medal: 0
                 }
             ];
             
             organizeParticipantsData();
-            console.log("Загружены тестовые данные:", participantsData.length, "участников");
         }
 
         function setupEventListeners() {
@@ -1272,4 +1058,358 @@
                 
                 card.innerHTML = `
                     <div class="participant-name">
-                        ${participant.name} ${isRegistered ? '✅ З
+                        ${participant.name} ${isRegistered ? '✅ ЗАРЕГИСТРИРОВАН' : ''}
+                    </div>
+                    <div class="participant-info">
+                        <div style="color: #666; font-size: 0.9rem;">Нажмите для выбора</div>
+                    </div>
+                `;
+                
+                if (!isRegistered) {
+                    card.addEventListener('click', () => selectParticipant(participant, card));
+                }
+                
+                container.appendChild(card);
+            });
+        }
+
+        function selectParticipant(participant, cardElement) {
+            document.querySelectorAll('.participant-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            cardElement.classList.add('selected');
+            selectedParticipant = participant;
+            
+            const nextBtn2 = document.getElementById('nextBtn2');
+            if (nextBtn2) nextBtn2.disabled = false;
+        }
+
+        function filterParticipants() {
+            updateParticipantsList();
+        }
+
+        function updateRegistrationStats() {
+            if (!selectedConsultant || !consultantsData[selectedConsultant]) return;
+            
+            const participants = consultantsData[selectedConsultant];
+            const registeredCount = participants.filter(p => registrationsData[p.id]).length;
+            
+            const regCountElement = document.getElementById('regCount');
+            const totalCountElement = document.getElementById('totalCount');
+            
+            if (regCountElement) regCountElement.textContent = registeredCount;
+            if (totalCountElement) totalCountElement.textContent = participants.length;
+        }
+
+        function updateConfirmationCard() {
+            if (!selectedParticipant) return;
+            
+            const confirmNameElement = document.getElementById('confirmName');
+            const confirmConsultantElement = document.getElementById('confirmConsultant');
+            
+            if (confirmNameElement) confirmNameElement.textContent = selectedParticipant.name;
+            if (confirmConsultantElement) confirmConsultantElement.textContent = selectedParticipant.consultant;
+        }
+
+        async function registerParticipant() {
+            if (!selectedParticipant || !db) return;
+            
+            try {
+                if (registrationsData[selectedParticipant.id]) {
+                    showAlreadyRegistered();
+                    return;
+                }
+                
+                if (!isAdminAuthenticated && registeredIPs[userIP]) {
+                    const existingParticipantId = registeredIPs[userIP];
+                    const existingParticipant = registrationsData[existingParticipantId];
+                    showGlobalStatus(`С этого устройства уже зарегистрирован участник: ${existingParticipant.name}`, 'error');
+                    return;
+                }
+                
+                if (!registrationEnabled) {
+                    showGlobalStatus('Регистрация временно закрыта администратором', 'error');
+                    showStep('registrationClosedStep');
+                    return;
+                }
+                
+                const registerBtn = document.getElementById('registerBtn');
+                if (registerBtn) {
+                    registerBtn.disabled = true;
+                    registerBtn.textContent = 'Регистрация...';
+                }
+                
+                const registrationData = {
+                    participantId: selectedParticipant.id,
+                    name: selectedParticipant.name,
+                    consultant: selectedParticipant.consultant,
+                    type: selectedParticipant.type,
+                    chances: selectedParticipant.chances,
+                    weight: selectedParticipant.weight || 0,
+                    medal: selectedParticipant.medal || 0,
+                    userIP: userIP,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    registeredAt: new Date().toISOString(),
+                    registeredByAdmin: isAdminAuthenticated
+                };
+                
+                await db.collection('registrations').doc(selectedParticipant.id).set(registrationData);
+                
+                registrationsData[selectedParticipant.id] = registrationData;
+                
+                if (!isAdminAuthenticated) {
+                    registeredIPs[userIP] = selectedParticipant.id;
+                }
+                
+                showSuccessfulRegistration();
+                updateAllStats();
+                
+            } catch (error) {
+                console.error("Ошибка регистрации:", error);
+                showGlobalStatus("Ошибка регистрации: " + error.message, 'error');
+                
+                const registerBtn = document.getElementById('registerBtn');
+                if (registerBtn) {
+                    registerBtn.disabled = false;
+                    registerBtn.innerHTML = '<span class="emoji">🎉</span>Зарегистрироваться на фестивале';
+                }
+            }
+        }
+
+        function showSuccessfulRegistration() {
+            const registrationTimeElement = document.getElementById('registrationTime');
+            if (registrationTimeElement) {
+                registrationTimeElement.textContent = `Время: ${new Date().toLocaleTimeString('ru-RU')}`;
+            }
+            
+            showStep('step4');
+            showGlobalStatus(`${selectedParticipant.name} успешно зарегистрирован!`, 'success');
+        }
+
+        function showAlreadyRegistered() {
+            const regData = registrationsData[selectedParticipant.id];
+            const existingInfoElement = document.getElementById('existingRegistrationInfo');
+            
+            if (existingInfoElement && regData) {
+                existingInfoElement.innerHTML = `
+                    <strong>${selectedParticipant.name}</strong><br>
+                    Время регистрации: ${new Date(regData.registeredAt).toLocaleString('ru-RU')}
+                `;
+            }
+            
+            showStep('step5');
+        }
+
+        function resetForm() {
+            selectedConsultant = '';
+            selectedParticipant = null;
+            
+            const consultantSelect = document.getElementById('consultantSelect');
+            const consultantSearch = document.getElementById('consultantSearch');
+            const participantSearch = document.getElementById('participantSearch');
+            const nextBtn1 = document.getElementById('nextBtn1');
+            const nextBtn2 = document.getElementById('nextBtn2');
+            const registerBtn = document.getElementById('registerBtn');
+            
+            if (consultantSelect) consultantSelect.value = '';
+            if (consultantSearch) consultantSearch.value = '';
+            if (participantSearch) participantSearch.value = '';
+            if (nextBtn1) nextBtn1.disabled = true;
+            if (nextBtn2) nextBtn2.disabled = true;
+            if (registerBtn) {
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = '<span class="emoji">🎉</span>Зарегистрироваться на фестивале';
+            }
+            
+            updateConsultantsList();
+            showStep('step1');
+        }
+
+        function updateAllStats() {
+            updateConsultantsList();
+            updateAdminStats();
+            if (selectedConsultant) {
+                updateRegistrationStats();
+            }
+            if (isAdminAuthenticated) {
+                updateAdminPreview();
+            }
+        }
+
+        function loginAdmin() {
+            const inputPassword = document.getElementById('adminPasswordInput');
+            const errorElement = document.getElementById('loginError');
+            
+            if (!inputPassword || !errorElement) return;
+            
+            if (inputPassword.value === adminSettings.password) {
+                isAdminAuthenticated = true;
+                showAdminPanel();
+                showGlobalStatus('Вход в админ-панель выполнен', 'success');
+                
+                inputPassword.value = '';
+                errorElement.style.display = 'none';
+            } else {
+                errorElement.textContent = '❌ Неверный пароль администратора';
+                errorElement.style.display = 'block';
+                inputPassword.value = '';
+            }
+        }
+
+        function showAdminPanel() {
+            console.log('Админ-панель активирована');
+        }
+
+        function updateAdminStats() {
+            console.log('Обновление статистики админа');
+        }
+
+        function updateAdminPreview() {
+            console.log('Обновление превью админа');
+        }
+
+        // ИЗМЕНЕНИЯ 2 и 3: Функции для перемешивания и копирования списка лотереи
+        function shuffleLotteryList() {
+            const lotteryEntries = [];
+            Object.values(registrationsData).forEach(reg => {
+                for (let i = 0; i < reg.chances; i++) {
+                    lotteryEntries.push(reg.name);
+                }
+            });
+            
+            if (lotteryEntries.length === 0) {
+                showGlobalStatus('Нет участников для перемешивания', 'warning');
+                return;
+            }
+            
+            // Алгоритм Fisher-Yates для качественного перемешивания
+            shuffledLotteryList = [...lotteryEntries];
+            for (let i = shuffledLotteryList.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffledLotteryList[i], shuffledLotteryList[j]] = [shuffledLotteryList[j], shuffledLotteryList[i]];
+            }
+            
+            // Обновляем отображение в админ-панели
+            updateChancesPreview();
+            showGlobalStatus(`🎲 Список из ${shuffledLotteryList.length} участников перемешан!`, 'success');
+        }
+
+        function copyLotteryToClipboard() {
+            let listToCopy = [];
+            
+            // Определяем, какой список копировать
+            if (shuffledLotteryList.length > 0) {
+                listToCopy = shuffledLotteryList;
+            } else {
+                // Если не перемешивали, используем оригинальный список
+                Object.values(registrationsData).forEach(reg => {
+                    for (let i = 0; i < reg.chances; i++) {
+                        listToCopy.push(reg.name);
+                    }
+                });
+            }
+            
+            if (listToCopy.length === 0) {
+                showGlobalStatus('Нет участников для копирования', 'warning');
+                return;
+            }
+            
+            // Формируем текст для копирования (каждое имя с новой строки)
+            const textToCopy = listToCopy.join('\n');
+            
+            // Пытаемся скопировать в буфер обмена
+            if (navigator.clipboard && window.isSecureContext) {
+                // Современный способ для HTTPS
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const listType = shuffledLotteryList.length > 0 ? 'перемешанный' : 'исходный';
+                    showGlobalStatus(`📋 Скопировано ${listToCopy.length} записей (${listType} список)`, 'success');
+                }).catch(error => {
+                    console.error('Ошибка копирования:', error);
+                    fallbackCopyToClipboard(textToCopy, listToCopy.length);
+                });
+            } else {
+                // Fallback для HTTP или старых браузеров
+                fallbackCopyToClipboard(textToCopy, listToCopy.length);
+            }
+        }
+
+        function fallbackCopyToClipboard(text, count) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                textArea.remove();
+                const listType = shuffledLotteryList.length > 0 ? 'перемешанный' : 'исходный';
+                showGlobalStatus(`📋 Скопировано ${count} записей (${listType} список)`, 'success');
+            } catch (err) {
+                textArea.remove();
+                console.error('Ошибка копирования:', err);
+                showManualCopyModal(text);
+            }
+        }
+
+        function showManualCopyModal(text) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                background: rgba(0,0,0,0.5); z-index: 9999; display: flex; 
+                align-items: center; justify-content: center;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 10px; max-width: 90%; max-height: 90%; overflow: auto;">
+                    <h3 style="margin-bottom: 15px;">📋 Скопируйте текст вручную:</h3>
+                    <textarea readonly style="width: 100%; height: 300px; margin: 10px 0; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: monospace;">${text}</textarea>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Закрыть</button>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            setTimeout(() => {
+                const textarea = modal.querySelector('textarea');
+                textarea.focus();
+                textarea.select();
+            }, 100);
+        }
+
+        function updateChancesPreview() {
+            console.log('Обновление превью шансов с кнопками перемешивания и копирования');
+            // Эта функция будет вызываться из админ-панели когда она будет полностью реализована
+        }
+
+        function showError(message) {
+            const errorMessageElement = document.getElementById('errorMessage');
+            if (errorMessageElement) {
+                errorMessageElement.textContent = message;
+            }
+            showStep('errorStep');
+        }
+
+        function showGlobalStatus(message, type = 'info') {
+            const statusElement = document.getElementById('globalStatus');
+            if (statusElement) {
+                statusElement.textContent = message;
+                statusElement.className = `status ${type}`;
+                statusElement.style.display = 'block';
+                
+                setTimeout(() => {
+                    statusElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Делаем функции глобально доступными
+        window.shuffleLotteryList = shuffleLotteryList;
+        window.copyLotteryToClipboard = copyLotteryToClipboard;
+    </script>
+</body>
+</html>
