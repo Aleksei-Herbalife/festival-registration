@@ -302,17 +302,28 @@
         
         /* Контейнер для админ-панели */
         .admin-container {
-            max-width: 420px;
+            max-width: 320px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             overflow: hidden;
             animation: slideUp 0.5s ease;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-container.expanded {
+            max-width: 420px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
         @media (min-width: 768px) {
             .admin-container {
+                max-width: 400px;
+                border-radius: 20px;
+            }
+            .admin-container.expanded {
                 max-width: 800px;
                 border-radius: 25px;
             }
@@ -321,7 +332,17 @@
         /* Админ-панель */
         .admin-login-section {
             text-align: center;
-            padding: 30px 20px;
+            padding: 20px 15px;
+        }
+        
+        .admin-login-section h3 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .admin-login-section p {
+            font-size: 0.85rem;
+            margin-bottom: 15px;
         }
         
         .admin-tab.active {
@@ -682,45 +703,50 @@
 
     <!-- Панель администратора (отдельный контейнер ниже) -->
     <div class="admin-container" id="adminContainer">
-        <div class="header">
-            <h1>🔧 Администрирование</h1>
-            <p>Управление системой регистрации</p>
+        <div class="header" style="background: linear-gradient(135deg, #6c757d 0%, #495057 100%); padding: 15px;">
+            <h1 style="font-size: 1.4rem; margin-bottom: 5px;">🔧 Администратор</h1>
+            <p style="font-size: 0.85rem;">Панель управления</p>
         </div>
         
         <div class="content">
             <!-- Форма входа в админку -->
             <div id="adminLoginSection" class="admin-login-section">
-                <div style="font-size: 3rem; margin-bottom: 15px;">🔐</div>
-                <h3 style="margin-bottom: 15px; color: #333;">Вход в панель администратора</h3>
-                <p style="color: #666; margin-bottom: 20px;">Введите пароль для доступа к функциям управления</p>
+                <div style="font-size: 2rem; margin-bottom: 10px;">🔐</div>
+                <h3 style="margin-bottom: 10px; color: #333;">Вход администратора</h3>
+                <p style="color: #666; margin-bottom: 15px;">Введите пароль для управления</p>
                 
-                <div style="margin-bottom: 15px;">
-                    <input type="password" id="adminPasswordInput" placeholder="Введите пароль администратора" 
-                           style="width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+                <div style="margin-bottom: 12px;">
+                    <input type="password" id="adminPasswordInput" placeholder="Пароль" 
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 0.95rem;">
                 </div>
                 
-                <button class="btn btn-primary" onclick="loginAdmin()" style="margin-bottom: 10px;">
-                    🔓 Войти в админ-панель
+                <button class="btn btn-primary" onclick="loginAdmin()" style="margin-bottom: 8px; font-size: 0.9rem; padding: 12px;">
+                    🔓 Войти
                 </button>
                 
-                <div id="loginError" style="display: none; margin-top: 15px; padding: 15px; background: #f8d7da; color: #721c24; border-radius: 8px; font-size: 0.9rem;"></div>
+                <div id="loginError" style="display: none; margin-top: 10px; padding: 10px; background: #f8d7da; color: #721c24; border-radius: 6px; font-size: 0.8rem;"></div>
             </div>
             
             <!-- Главная админ-панель -->
             <div id="adminPanel" style="display: none;">
-                <div style="background: #e8f5e8; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <strong>✅ Авторизован как администратор</strong>
-                            <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
-                                Полный доступ к управлению системой
+                        <div style="background: #e8f5e8; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div>
+                                    <strong>✅ Авторизован как администратор</strong>
+                                    <div style="font-size: 0.9rem; color: #666; margin-top: 5px;">
+                                        Полный доступ к управлению системой
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button class="btn btn-secondary" onclick="resetForm()" style="font-size: 0.8rem; padding: 6px 12px; width: auto;">
+                                        👥 Регистрация
+                                    </button>
+                                    <button class="btn btn-danger" onclick="logoutAdmin()" style="font-size: 0.8rem; padding: 6px 12px; width: auto;">
+                                        🚪 Выйти
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <button class="btn btn-danger" onclick="logoutAdmin()" style="font-size: 0.85rem; padding: 8px 15px; width: auto;">
-                            🚪 Выйти
-                        </button>
-                    </div>
-                </div>
 
                 <!-- Вкладки админки -->
                 <div class="admin-tabs">
@@ -1290,8 +1316,8 @@
                     return;
                 }
                 
-                // Проверяем, не регистрировался ли уже с этого IP
-                if (registeredIPs[userIP]) {
+                // Для администраторов разрешаем повторную регистрацию с того же IP
+                if (!isAdminAuthenticated && registeredIPs[userIP]) {
                     const existingParticipantId = registeredIPs[userIP];
                     const existingParticipant = registrationsData[existingParticipantId];
                     showGlobalStatus(`С этого устройства уже зарегистрирован участник: ${existingParticipant.name}`, 'error');
@@ -1319,7 +1345,8 @@
                     medal: selectedParticipant.medal || 0,
                     userIP: userIP,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                    registeredAt: new Date().toISOString()
+                    registeredAt: new Date().toISOString(),
+                    registeredByAdmin: isAdminAuthenticated
                 };
                 
                 // Сохраняем в Firebase
@@ -1327,7 +1354,11 @@
                 
                 // Обновляем локальные данные
                 registrationsData[selectedParticipant.id] = registrationData;
-                registeredIPs[userIP] = selectedParticipant.id;
+                
+                // Для обычных пользователей сохраняем IP, для админов - нет
+                if (!isAdminAuthenticated) {
+                    registeredIPs[userIP] = selectedParticipant.id;
+                }
                 
                 // Показываем успешную регистрацию
                 showSuccessfulRegistration();
@@ -1408,6 +1439,20 @@
 
         function logoutAdmin() {
             isAdminAuthenticated = false;
+            
+            // Сжимаем контейнер админ-панели
+            const adminContainer = document.getElementById('adminContainer');
+            adminContainer.classList.remove('expanded');
+            
+            // Возвращаем исходный заголовок
+            const header = adminContainer.querySelector('.header');
+            header.innerHTML = `
+                <h1 style="font-size: 1.4rem; margin-bottom: 5px;">🔧 Администратор</h1>
+                <p style="font-size: 0.85rem;">Панель управления</p>
+            `;
+            header.style.background = 'linear-gradient(135deg, #6c757d 0%, #495057 100%)';
+            header.style.padding = '15px';
+            
             document.getElementById('adminLoginSection').style.display = 'block';
             document.getElementById('adminPanel').style.display = 'none';
             document.getElementById('adminPasswordInput').value = '';
@@ -1418,6 +1463,20 @@
         function showAdminPanel() {
             document.getElementById('adminLoginSection').style.display = 'none';
             document.getElementById('adminPanel').style.display = 'block';
+            
+            // Расширяем контейнер админ-панели
+            const adminContainer = document.getElementById('adminContainer');
+            adminContainer.classList.add('expanded');
+            
+            // Обновляем заголовок
+            const header = adminContainer.querySelector('.header');
+            header.innerHTML = `
+                <h1 style="font-size: 1.8rem; margin-bottom: 8px;">🔧 Администрирование</h1>
+                <p style="font-size: 1rem;">Управление системой регистрации</p>
+            `;
+            header.style.background = 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)';
+            header.style.padding = '25px 20px';
+            
             updateAdminStats();
             updateAdminPreview();
             document.getElementById('currentPassword').textContent = adminSettings.password;
@@ -1473,7 +1532,15 @@
                 adminSettings.lastChanged = new Date().toISOString();
                 
                 if (db) {
-                    await db.collection('settings').doc('admin').set(adminSettings);
+                    try {
+                        await db.collection('settings').doc('admin').update({
+                            registrationEnabled: newStatus,
+                            lastChanged: adminSettings.lastChanged
+                        });
+                    } catch (updateError) {
+                        // Если документ не существует, создаем его
+                        await db.collection('settings').doc('admin').set(adminSettings);
+                    }
                 }
                 
                 registrationEnabled = newStatus;
