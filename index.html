@@ -417,7 +417,31 @@
             transform: translateY(-1px);
             box-shadow: 0 3px 10px rgba(23, 162, 184, 0.3);
         }
+        }
         
+        /* Кнопка копирования */
+        .copy-btn {
+            background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .copy-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(111, 66, 193, 0.3);
+        }
+        
+        .copy-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
         /* Список шансов без нумерации */
         .chances-list {
             max-height: 400px;
@@ -661,12 +685,7 @@
                 <div class="progress">
                     <div class="progress-bar" style="width: 25%"></div>
                 </div>
-                
-                <div class="info-card">
-                    <strong>📅 Ежемесячный фестиваль</strong><br>
-                    <span id="participantCount">Участников: 0</span>
-                </div>
-                
+                                
                 <h2 style="margin-bottom: 10px;">👤 Ваш консультант</h2>
                 <p style="color: #666; margin-bottom: 20px;">Выберите консультанта, который пригласил вас на фестиваль</p>
                 
@@ -1245,7 +1264,7 @@
             });
             
             updateConsultantsList();
-            updateParticipantCount();
+            
         }
 
         function loadTestData() {
@@ -1377,11 +1396,7 @@
             document.getElementById('nextBtn1').disabled = false;
         }
 
-        function updateParticipantCount() {
-            document.getElementById('participantCount').textContent = 
-                `Участников: ${participantsData.length}`;
-        }
-
+       
         function filterConsultants() {
             updateConsultantsList();
         }
@@ -1834,8 +1849,12 @@
                 }
             });
             
-            let html = '<button class="randomize-btn" onclick="randomizeChancesList()">🎲 Перемешать список</button>';
-            html += '<h3>Предварительный просмотр лотереи:</h3>';
+           let html = '';
+html += '<div style="margin-bottom: 15px; text-align: center;">';
+html += '<button class="randomize-btn" onclick="randomizeChancesList()">🎲 Перемешать список</button>';
+html += '<button class="copy-btn" onclick="copyChancesToClipboard()" style="margin-left: 10px;">📋 Копировать</button>';
+html += '</div>';
+html += '<h3>Предварительный просмотр лотереи:</h3>';
             
             if (lotteryEntries.length === 0) {
                 html += '<div style="text-align: center; color: #666; padding: 20px;">Пока нет зарегистрированных участников</div>';
@@ -2399,12 +2418,17 @@
                     // Если регистрация была закрыта админом, переключаем на соответствующий экран
                     if (!registrationEnabled && !document.getElementById('registrationClosedStep').classList.contains('active') && !isAdminAuthenticated) {
                         showStep('registrationClosedStep');
-                    }
+             }
                 } catch (error) {
                     console.error("Ошибка автообновления:", error);
                 }
             }
         }, 10000); // Обновление каждые 10 секунд
+        
+        // Делаем функции глобально доступными для HTML onclick
+        window.randomizeChancesList = randomizeChancesList;
+        window.copyChancesToClipboard = copyChancesToClipboard;
+        window.removeRegistration = removeRegistration;
     </script>
 </body>
 </html>
