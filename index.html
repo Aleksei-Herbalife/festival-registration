@@ -460,21 +460,25 @@
             
             console.log("✅ Firebase подключен успешно");
             
-            // Инициализация приложения после подключения Firebase
-            if (typeof window.initApp === 'function') {
-                window.initApp();
-            }
-            
         } catch (error) {
             console.error("❌ Ошибка подключения Firebase:", error);
             isFirebaseConnected = false;
             window.isFirebaseConnected = false;
-            
-            // Инициализация в оффлайн режиме
+        }
+        
+        // Инициализация приложения в любом случае
+        setTimeout(() => {
             if (typeof window.initApp === 'function') {
                 window.initApp();
+            } else {
+                console.log("⏰ Ожидание загрузки основного скрипта...");
+                setTimeout(() => {
+                    if (typeof window.initApp === 'function') {
+                        window.initApp();
+                    }
+                }, 1000);
             }
-        }
+        }, 100);
     </script>
 
     <!-- Основной контейнер регистрации -->
@@ -821,7 +825,11 @@
             try {
                 // Загружаем настройки администратора
                 if (window.isFirebaseConnected) {
-                    await loadAdminSettings();
+                    try {
+                        await loadAdminSettings();
+                    } catch (error) {
+                        console.warn("⚠️ Не удалось загрузить настройки админа:", error);
+                    }
                 }
                 
                 // Пытаемся загрузить данные участников из разных источников
@@ -830,7 +838,11 @@
                 if (loadSuccess) {
                     // Загружаем регистрации из Firebase
                     if (window.isFirebaseConnected) {
-                        await loadRegistrationsFromFirebase();
+                        try {
+                            await loadRegistrationsFromFirebase();
+                        } catch (error) {
+                            console.warn("⚠️ Не удалось загрузить регистрации:", error);
+                        }
                     }
                     
                     // Проверяем, открыта ли регистрация
@@ -854,51 +866,35 @@
             }
         };
 
+        // Принудительная инициализация если Firebase не загрузился
+        setTimeout(() => {
+            if (currentStep === 'loadingStep') {
+                console.log("⏰ Принудительная инициализация через 3 секунды...");
+                window.initApp();
+            }
+        }, 3000);
+
         // Загрузка данных участников из разных источников
         async function loadParticipantsFromSources() {
-            const sources = [
-                {
-                    name: "Демо данные",
-                    loader: loadDemoData
-                }
-            ];
-            
-            for (const source of sources) {
-                try {
-                    console.log(`🔄 Попытка загрузки из: ${source.name}`);
-                    const success = await source.loader();
-                    if (success) {
-                        console.log(`✅ Данные загружены из: ${source.name}`);
-                        return true;
-                    }
-                } catch (error) {
-                    console.warn(`⚠️ Ошибка загрузки из ${source.name}:`, error);
-                }
+            // Убираем демо-данные, требуем загрузку файла
+            if (participantsData.length === 0) {
+                console.log("📋 Данные участников не загружены. Требуется загрузка Excel файла.");
+                showStep('errorStep');
+                document.getElementById('errorMessage').innerHTML = `
+                    <strong>Данные участников не загружены</strong><br>
+                    Необходимо загрузить Excel файл с данными участников через админ-панель.<br><br>
+                    <small>Войдите как администратор (пароль: admin123) и загрузите файл в разделе "Управление"</small>
+                `;
+                return false;
             }
             
-            return false;
+            return true;
         }
 
-        // Загрузка демо данных
+        // Убираем загрузку демо данных
         async function loadDemoData() {
-            participantsData = [
-                { id: 1, name: "Иван Петров", consultant: "Анна Смирнова", chances: 2, weight: 75, medal: "Золото" },
-                { id: 2, name: "Мария Иванова", consultant: "Анна Смирнова", chances: 1, weight: 60, medal: "Серебро" },
-                { id: 3, name: "Петр Сидоров", consultant: "Борис Козлов", chances: 3, weight: 80, medal: "Бронза" },
-                { id: 4, name: "Елена Козлова", consultant: "Борис Козлов", chances: 1, weight: 55, medal: "Участник" },
-                { id: 5, name: "Алексей Морозов", consultant: "Виктор Новиков", chances: 2, weight: 85, medal: "Золото" }
-            ];
-            
-            // Группируем по консультантам
-            consultantsData = {};
-            participantsData.forEach(participant => {
-                if (!consultantsData[participant.consultant]) {
-                    consultantsData[participant.consultant] = [];
-                }
-                consultantsData[participant.consultant].push(participant);
-            });
-            
-            return true;
+            // Возвращаем false, чтобы не загружать демо-данные
+            return false;
         }
 
         // Функции для работы с Firebase
@@ -1827,6 +1823,13 @@
                 showGlobalStatus('Данные успешно загружены', 'success');
                 setupEventListeners();
                 updateUI();
+                
+                // После загрузки данных показываем форму регистрации
+                if (registrationEnabled) {
+                    showStep('step1');
+                } else {
+                    showStep('registrationClosedStep');
+                }
                 
                 if (isAdminAuthenticated) {
                     updateAdminStats();
