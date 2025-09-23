@@ -1890,15 +1890,25 @@ function randomizeChancesList() {
         }
     });
     
-    if (lotteryEntries.length > 0) {
-        window.randomizedChancesList = shuffleArray(lotteryEntries);
-        updateChancesPreview();
-        showGlobalStatus('Список лотереи перемешан!', 'success');
-    } else {
-        showGlobalStatus('Нет участников для перемешивания', 'warning');
-    }
+if (lotteryEntries.length > 0) {
+    window.randomizedChancesList = shuffleArray(lotteryEntries);
+    updateChancesPreview();
+    showGlobalStatus('Список лотереи перемешан! 🎲', 'success');
+    console.log('Список перемешан, новый порядок:', window.randomizedChancesList.slice(0, 10));
+} else {
+    showGlobalStatus('Нет участников для перемешивания', 'warning');
 }
 
+function shuffleArray(array) {
+    const shuffled = array.slice();
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = shuffled[i];
+        shuffled[i] = shuffled[j];
+        shuffled[j] = temp;
+    }
+    return shuffled;
+}
 // ВСТАВИТЬ СЮДА функцию copyChancesToClipboard()
 function copyChancesToClipboard() {
     try {
